@@ -1,817 +1,810 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Dashboard de Demandas</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css"
+    />
     <style>
-        :root {
-            --primary-color: #2563eb;
-            --hover-color: #1e40af;
-            --bg-color: #f8fafc;
-            --card-color: #ffffff;
-            --border-color: #e2e8f0;
-            --text-color: #334155;
-            --text-light: #64748b;
-        }
+      :root {
+        --primary-color: #2563eb;
+        --hover-color: #1e40af;
+        --bg-color: #f8fafc;
+        --card-color: #ffffff;
+        --border-color: #e2e8f0;
+        --text-color: #334155;
+        --text-light: #64748b;
+        --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        }
+      body.dark-theme {
+        --bg-color: #1a1a1a;
+        --card-color: #2d2d2d;
+        --text-color: #ffffff;
+        --text-light: #a0a0a0;
+        --border-color: #444444;
+      }
 
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            padding: 20px;
-        }
+      body {
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        padding: 20px;
+        line-height: 1.6;
+        transition: background-color 0.3s, color 0.3s;
+      }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 20px;
+      }
 
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+      }
 
-        h1 {
-            font-size: 24px;
-            font-weight: 600;
-        }
+      h1 {
+        font-size: 28px;
+        font-weight: 600;
+        color: var(--text-color);
+      }
 
-        .toolbar {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
+      .toolbar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
 
-        button {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            padding: 8px 16px;
-            font-size: 14px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            transition: background-color 0.2s;
-        }
+      button {
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 10px 20px;
+        font-size: 14px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: background-color 0.2s;
+      }
 
-        button:hover {
-            background-color: var(--hover-color);
-        }
+      button:hover {
+        background-color: var(--hover-color);
+      }
 
-        .tabs {
-            display: flex;
-            border-bottom: 1px solid var(--border-color);
-            margin-bottom: 20px;
-            overflow-x: auto;
-        }
+      .kanban-column {
+        min-width: 300px;
+        background-color: var(--card-color);
+        border-radius: 12px;
+        box-shadow: var(--shadow);
+        padding: 16px;
+      }
 
-        .tab {
-            padding: 10px 16px;
-            cursor: pointer;
-            border-bottom: 2px solid transparent;
-            font-size: 14px;
-            color: var(--text-light);
-            white-space: nowrap;
-        }
+      .kanban-item {
+        background-color: var(--bg-color);
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 12px;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+      }
 
-        .tab.active {
-            border-bottom: 2px solid var(--primary-color);
-            color: var(--primary-color);
-            font-weight: 500;
-        }
+      .kanban-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
 
-        .tab:hover:not(.active) {
-            color: var(--text-color);
-        }
+      .tabs {
+        display: flex;
+        border-bottom: 1px solid var(--border-color);
+        margin-bottom: 20px;
+        overflow-x: auto;
+      }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-            background-color: var(--card-color);
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            border-radius: 8px;
-            overflow: hidden;
-        }
+      .tab {
+        padding: 10px 16px;
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        font-size: 14px;
+        color: var(--text-light);
+        white-space: nowrap;
+      }
 
-        th, td {
-            padding: 12px 16px;
-            text-align: left;
-            border-bottom: 1px solid var(--border-color);
-        }
+      .tab.active {
+        border-bottom: 2px solid var(--primary-color);
+        color: var(--primary-color);
+        font-weight: 500;
+      }
 
-        th {
-            font-weight: 500;
-            color: var(--text-light);
-            font-size: 14px;
-        }
+      .tab:hover:not(.active) {
+        color: var(--text-color);
+      }
 
-        tbody tr:hover {
-            background-color: rgba(0, 0, 0, 0.02);
-        }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+        background-color: var(--card-color);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        overflow: hidden;
+      }
 
-        tbody tr:last-child td {
-            border-bottom: none;
-        }
+      th,
+      td {
+        padding: 12px 16px;
+        text-align: left;
+        border-bottom: 1px solid var(--border-color);
+      }
 
-        .status-badge {
-            padding: 4px 8px;
-            border-radius: 16px;
-            font-size: 12px;
-            font-weight: 500;
-            display: inline-block;
-        }
+      th {
+        font-weight: 500;
+        color: var(--text-light);
+        font-size: 14px;
+      }
 
-        .status-pendente {
-            background-color: #fef3c7;
-            color: #d97706;
-        }
+      tbody tr:hover {
+        background-color: rgba(0, 0, 0, 0.02);
+      }
 
-        .status-em-andamento {
-            background-color: #e0f2fe;
-            color: #0284c7;
-        }
+      tbody tr:last-child td {
+        border-bottom: none;
+      }
 
-        .status-concluido {
-            background-color: #dcfce7;
-            color: #16a34a;
-        }
+      .status-badge {
+        padding: 4px 8px;
+        border-radius: 16px;
+        font-size: 12px;
+        font-weight: 500;
+        display: inline-block;
+      }
 
-        .status-cancelado {
-            background-color: #fee2e2;
-            color: #dc2626;
-        }
+      .status-pendente {
+        background-color: #fef3c7;
+        color: #d97706;
+      }
 
-        .priority-badge {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            font-size: 12px;
-            font-weight: 500;
-        }
+      .status-em-andamento {
+        background-color: #e0f2fe;
+        color: #0284c7;
+      }
 
-        .priority-alta {
-            color: #dc2626;
-        }
+      .status-concluido {
+        background-color: #dcfce7;
+        color: #16a34a;
+      }
 
-        .priority-media {
-            color: #d97706;
-        }
+      .status-cancelado {
+        background-color: #fee2e2;
+        color: #dc2626;
+      }
 
-        .priority-baixa {
-            color: #16a34a;
-        }
+      .priority-badge {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 12px;
+        font-weight: 500;
+      }
 
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(0, 0, 0, 0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            display: none;
-        }
+      .priority-alta {
+        color: #dc2626;
+      }
 
-        .modal {
-            background-color: var(--card-color);
-            border-radius: 8px;
-            width: 500px;
-            max-width: 90%;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
+      .priority-media {
+        color: #d97706;
+      }
 
-        .modal-header {
-            padding: 16px;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+      .priority-baixa {
+        color: #16a34a;
+      }
 
-        .modal-title {
-            font-size: 18px;
-            font-weight: 600;
-        }
+      .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        display: none;
+      }
 
-        .modal-close {
-            background: none;
-            border: none;
-            font-size: 20px;
-            cursor: pointer;
-            color: var(--text-light);
-        }
+      .modal {
+        background-color: var(--card-color);
+        border-radius: 8px;
+        width: 500px;
+        max-width: 90%;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
 
-        .modal-body {
-            padding: 16px;
-        }
+      .modal-header {
+        padding: 16px;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
 
-        .form-group {
-            margin-bottom: 16px;
-        }
+      .modal-title {
+        font-size: 18px;
+        font-weight: 600;
+      }
 
-        label {
-            display: block;
-            margin-bottom: 6px;
-            font-size: 14px;
-            color: var(--text-light);
-        }
+      .modal-close {
+        background: none;
+        border: none;
+        font-size: 20px;
+        cursor: pointer;
+        color: var(--text-light);
+      }
 
-        input, select, textarea {
-            width: 100%;
-            padding: 8px 12px;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            font-size: 14px;
-            color: var(--text-color);
-        }
+      .modal-body {
+        padding: 16px;
+      }
 
-        input:focus, select:focus, textarea:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
-        }
+      .form-group {
+        margin-bottom: 16px;
+      }
 
-        .modal-footer {
-            padding: 16px;
-            border-top: 1px solid var(--border-color);
-            display: flex;
-            justify-content: flex-end;
-            gap: 8px;
-        }
+      label {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 14px;
+        color: var(--text-light);
+      }
 
-        .modal-tab {
-            display: none;
-        }
+      input,
+      select,
+      textarea {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        font-size: 14px;
+        color: var(--text-color);
+      }
 
-        .modal-tab.active {
-            display: block;
-        }
+      input:focus,
+      select:focus,
+      textarea:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+      }
 
-        .tab-form {
-            padding: 16px;
-            border-bottom: 1px solid var(--border-color);
-        }
+      .modal-footer {
+        padding: 16px;
+        border-top: 1px solid var(--border-color);
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+      }
 
-        .new-tab-form {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+      .empty-state {
+        padding: 40px;
+        text-align: center;
+        color: var(--text-light);
+      }
 
-        #newTabName {
-            flex: 1;
-        }
-        
-        .empty-state {
-            padding: 40px;
-            text-align: center;
-            color: var(--text-light);
-        }
-        
-        .empty-state h3 {
-            margin-bottom: 10px;
-            font-weight: 500;
-        }
-        
-        .empty-state p {
-            margin-bottom: 20px;
-            font-size: 14px;
-        }
-        
-        .person-avatar {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            background-color: var(--primary-color);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            font-weight: 500;
-        }
-        
-        .tab-content {
-            display: none;
-        }
-        
-        .tab-content.active {
-            display: block;
-        }
-        
-        .view-selector {
-            display: flex;
-            margin-bottom: 16px;
-            background-color: var(--card-color);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            overflow: hidden;
-        }
-        
-        .view-option {
-            padding: 8px 16px;
-            font-size: 14px;
-            cursor: pointer;
-            flex: 1;
-            text-align: center;
-            border-right: 1px solid var(--border-color);
-        }
-        
-        .view-option:last-child {
-            border-right: none;
-        }
-        
-        .view-option.active {
-            background-color: var(--primary-color);
-            color: white;
-        }
-        
-        .kanban-view {
-            display: flex;
-            gap: 16px;
-            overflow-x: auto;
-            padding-bottom: 16px;
-        }
-        
-        .kanban-column {
-            min-width: 280px;
-            background-color: var(--card-color);
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        }
-        
-        .kanban-header {
-            padding: 12px 16px;
-            border-bottom: 1px solid var(--border-color);
-            font-weight: 500;
-            font-size: 14px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .kanban-count {
-            background-color: var(--bg-color);
-            color: var(--text-light);
-            border-radius: 16px;
-            padding: 2px 8px;
-            font-size: 12px;
-        }
-        
-        .kanban-items {
-            padding: 8px;
-            min-height: 100px;
-        }
-        
-        .kanban-item {
-            background-color: var(--bg-color);
-            border-radius: 6px;
-            padding: 12px;
-            margin-bottom: 8px;
-            cursor: pointer;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-        }
-        
-        .kanban-item:hover {
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        
-        .kanban-item-title {
-            font-weight: 500;
-            margin-bottom: 8px;
-            font-size: 14px;
-        }
-        
-        .kanban-item-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 8px;
-            font-size: 12px;
-            color: var(--text-light);
-        }
-        
-        .truncate {
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        
-        .view {
-            display: none;
-        }
-        
-        .view.active {
-            display: block;
-        }
-        
-        .context-menu {
-            position: absolute;
-            background-color: var(--card-color);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            padding: 8px 0;
-            z-index: 100;
-            display: none;
-        }
-        
-        .context-menu-item {
-            padding: 8px 16px;
-            font-size: 14px;
-            cursor: pointer;
-        }
-        
-        .context-menu-item:hover {
-            background-color: var(--bg-color);
-        }
-        
-        .delete-item {
-            color: #dc2626;
-        }
-        
-        .search-bar {
-            flex: 1;
-            max-width: 300px;
-            position: relative;
-            margin-right: auto;
-        }
-        
-        .search-bar input {
-            padding-left: 32px;
-            width: 100%;
-        }
-        
-        .search-icon {
-            position: absolute;
-            left: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-light);
-        }
+      .empty-state h3 {
+        margin-bottom: 10px;
+        font-weight: 500;
+      }
+
+      .empty-state p {
+        margin-bottom: 20px;
+        font-size: 14px;
+      }
+
+      .view-selector {
+        display: flex;
+        margin-bottom: 16px;
+        background-color: var(--card-color);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        overflow: hidden;
+      }
+
+      .view-option {
+        padding: 8px 16px;
+        font-size: 14px;
+        cursor: pointer;
+        flex: 1;
+        text-align: center;
+        border-right: 1px solid var(--border-color);
+      }
+
+      .view-option:last-child {
+        border-right: none;
+      }
+
+      .view-option.active {
+        background-color: var(--primary-color);
+        color: white;
+      }
+
+      .kanban-view {
+        display: flex;
+        gap: 16px;
+        overflow-x: auto;
+        padding-bottom: 16px;
+      }
+
+      .kanban-header {
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--border-color);
+        font-weight: 500;
+        font-size: 14px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .kanban-count {
+        background-color: var(--bg-color);
+        color: var(--text-light);
+        border-radius: 16px;
+        padding: 2px 8px;
+        font-size: 12px;
+      }
+
+      .kanban-items {
+        padding: 8px;
+        min-height: 100px;
+      }
+
+      .truncate {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .context-menu {
+        position: absolute;
+        background-color: var(--card-color);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        padding: 8px 0;
+        z-index: 100;
+        display: none;
+      }
+
+      .context-menu-item {
+        padding: 8px 16px;
+        font-size: 14px;
+        cursor: pointer;
+      }
+
+      .context-menu-item:hover {
+        background-color: var(--bg-color);
+      }
+
+      .delete-item {
+        color: #dc2626;
+      }
+
+      .search-bar {
+        flex: 1;
+        max-width: 300px;
+        position: relative;
+        margin-right: auto;
+      }
+
+      .search-bar input {
+        padding-left: 32px;
+        width: 100%;
+      }
+
+      .search-icon {
+        position: absolute;
+        left: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-light);
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container">
-        <div class="header">
-            <h1>Dashboard de Demandas</h1>
-            <button id="newDemandBtn">
-                + Nova Demanda
+      <div class="header">
+        <h1>Dashboard de Demandas</h1>
+        <button id="themeToggle">
+          <i class="fas fa-moon"></i> Tema Escuro
+        </button>
+      </div>
+
+      <div class="toolbar">
+        <div class="search-bar">
+          <span class="search-icon">🔍</span>
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="Buscar demandas..."
+          />
+        </div>
+        <button id="newDemandBtn">
+          <i class="fas fa-plus"></i> Nova Demanda
+        </button>
+        <button id="newTabBtn">
+          <i class="fas fa-plus"></i> Nova Aba
+        </button>
+      </div>
+
+      <div class="tabs" id="tabsContainer">
+        <div class="tab active" data-tab="tab1">Todas as Demandas</div>
+      </div>
+
+      <div class="view-selector">
+        <div class="view-option active" data-view="table">Tabela</div>
+        <div class="view-option" data-view="kanban">Kanban</div>
+        <div class="view-option" data-view="calendar">Calendário</div>
+      </div>
+
+      <div class="tab-content active" id="tab1">
+        <div class="view table-view active">
+          <table>
+            <thead>
+              <tr>
+                <th>Título</th>
+                <th>Status</th>
+                <th>Prioridade</th>
+                <th>Responsável</th>
+                <th>Data de Entrega</th>
+              </tr>
+            </thead>
+            <tbody id="demandsTable">
+              <!-- Demandas serão inseridas aqui dinamicamente -->
+            </tbody>
+          </table>
+        </div>
+
+        <div class="view kanban-view">
+          <div class="kanban-column">
+            <div class="kanban-header">
+              <span>Pendente</span>
+              <span class="kanban-count">0</span>
+            </div>
+            <div class="kanban-items" data-status="Pendente">
+              <!-- Itens serão inseridos aqui -->
+            </div>
+          </div>
+
+          <div class="kanban-column">
+            <div class="kanban-header">
+              <span>Em Andamento</span>
+              <span class="kanban-count">0</span>
+            </div>
+            <div class="kanban-items" data-status="Em Andamento">
+              <!-- Itens serão inseridos aqui -->
+            </div>
+          </div>
+
+          <div class="kanban-column">
+            <div class="kanban-header">
+              <span>Concluído</span>
+              <span class="kanban-count">0</span>
+            </div>
+            <div class="kanban-items" data-status="Concluído">
+              <!-- Itens serão inseridos aqui -->
+            </div>
+          </div>
+
+          <div class="kanban-column">
+            <div class="kanban-header">
+              <span>Cancelado</span>
+              <span class="kanban-count">0</span>
+            </div>
+            <div class="kanban-items" data-status="Cancelado">
+              <!-- Itens serão inseridos aqui -->
+            </div>
+          </div>
+        </div>
+
+        <div class="view calendar-view">
+          <div id="calendar"></div>
+        </div>
+      </div>
+
+      <!-- Menu de contexto -->
+      <div class="context-menu" id="contextMenu">
+        <div class="context-menu-item edit-item">Editar</div>
+        <div class="context-menu-item delete-item">Excluir</div>
+      </div>
+
+      <!-- Modal para adicionar nova demanda -->
+      <div class="modal-overlay" id="demandModal">
+        <div class="modal">
+          <div class="modal-header">
+            <h3 class="modal-title" id="demandModalTitle">Nova Demanda</h3>
+            <button class="modal-close">&times;</button>
+          </div>
+          <div class="modal-body">
+            <form id="demandForm">
+              <div class="form-group">
+                <label for="title">Título</label>
+                <input type="text" id="title" required />
+              </div>
+              <div class="form-group">
+                <label for="description">Descrição</label>
+                <textarea id="description" rows="3"></textarea>
+              </div>
+              <div class="form-group">
+                <label for="status">Status</label>
+                <select id="status" required>
+                  <option value="Pendente">Pendente</option>
+                  <option value="Em Andamento">Em Andamento</option>
+                  <option value="Concluído">Concluído</option>
+                  <option value="Cancelado">Cancelado</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="priority">Prioridade</label>
+                <select id="priority" required>
+                  <option value="Alta">Alta</option>
+                  <option value="Média">Média</option>
+                  <option value="Baixa">Baixa</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="responsible">Responsável</label>
+                <input type="text" id="responsible" />
+              </div>
+              <div class="form-group">
+                <label for="dueDate">Data de Entrega</label>
+                <input type="date" id="dueDate" />
+              </div>
+              <input type="hidden" id="demandId" />
+              <input type="hidden" id="tabId" value="tab1" />
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="cancel-btn">Cancelar</button>
+            <button type="button" id="saveDemandBtn">Salvar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal para adicionar nova aba -->
+      <div class="modal-overlay" id="tabModal">
+        <div class="modal">
+          <div class="modal-header">
+            <h3 class="modal-title">Nova Aba</h3>
+            <button class="modal-close">&times;</button>
+          </div>
+          <div class="modal-body">
+            <form id="tabForm" class="new-tab-form">
+              <div class="form-group" style="margin-bottom: 0; flex-grow: 1">
+                <label for="newTabName">Nome da Aba</label>
+                <input type="text" id="newTabName" required />
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="cancel-btn">Cancelar</button>
+            <button type="button" id="saveTabBtn">Criar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal de confirmação de exclusão -->
+      <div class="modal-overlay" id="deleteModal">
+        <div class="modal">
+          <div class="modal-header">
+            <h3 class="modal-title">Confirmar Exclusão</h3>
+            <button class="modal-close">&times;</button>
+          </div>
+          <div class="modal-body">
+            <p>Tem certeza que deseja excluir esta demanda?</p>
+            <input type="hidden" id="deleteId" />
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="cancel-btn">Cancelar</button>
+            <button
+              type="button"
+              id="confirmDeleteBtn"
+              style="background-color: #dc2626"
+            >
+              Excluir
             </button>
+          </div>
         </div>
-        
-        <div class="toolbar">
-            <div class="search-bar">
-                <span class="search-icon">🔍</span>
-                <input type="text" id="searchInput" placeholder="Buscar demandas...">
-            </div>
-            <button id="newTabBtn">+ Nova Aba</button>
-        </div>
-
-        <div class="tabs" id="tabsContainer">
-            <div class="tab active" data-tab="tab1">Todas as Demandas</div>
-        </div>
-        
-        <div class="view-selector">
-            <div class="view-option active" data-view="table">Tabela</div>
-            <div class="view-option" data-view="kanban">Kanban</div>
-        </div>
-
-        <div class="tab-content active" id="tab1">
-            <div class="view table-view active">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Título</th>
-                            <th>Status</th>
-                            <th>Prioridade</th>
-                            <th>Responsável</th>
-                            <th>Data de Entrega</th>
-                        </tr>
-                    </thead>
-                    <tbody id="demandsTable">
-                        <!-- Demandas serão inseridas aqui dinamicamente -->
-                    </tbody>
-                </table>
-            </div>
-            
-            <div class="view kanban-view">
-                <div class="kanban-column">
-                    <div class="kanban-header">
-                        <span>Pendente</span>
-                        <span class="kanban-count">0</span>
-                    </div>
-                    <div class="kanban-items" data-status="Pendente">
-                        <!-- Itens serão inseridos aqui -->
-                    </div>
-                </div>
-                
-                <div class="kanban-column">
-                    <div class="kanban-header">
-                        <span>Em Andamento</span>
-                        <span class="kanban-count">0</span>
-                    </div>
-                    <div class="kanban-items" data-status="Em Andamento">
-                        <!-- Itens serão inseridos aqui -->
-                    </div>
-                </div>
-                
-                <div class="kanban-column">
-                    <div class="kanban-header">
-                        <span>Concluído</span>
-                        <span class="kanban-count">0</span>
-                    </div>
-                    <div class="kanban-items" data-status="Concluído">
-                        <!-- Itens serão inseridos aqui -->
-                    </div>
-                </div>
-                
-                <div class="kanban-column">
-                    <div class="kanban-header">
-                        <span>Cancelado</span>
-                        <span class="kanban-count">0</span>
-                    </div>
-                    <div class="kanban-items" data-status="Cancelado">
-                        <!-- Itens serão inseridos aqui -->
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Menu de contexto -->
-        <div class="context-menu" id="contextMenu">
-            <div class="context-menu-item edit-item">Editar</div>
-            <div class="context-menu-item delete-item">Excluir</div>
-        </div>
-
-        <!-- Modal para adicionar nova demanda -->
-        <div class="modal-overlay" id="demandModal">
-            <div class="modal">
-                <div class="modal-header">
-                    <h3 class="modal-title" id="demandModalTitle">Nova Demanda</h3>
-                    <button class="modal-close">&times;</button>
-                </div>
-                <div class="modal-body">
-                    <form id="demandForm">
-                        <div class="form-group">
-                            <label for="title">Título</label>
-                            <input type="text" id="title" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="description">Descrição</label>
-                            <textarea id="description" rows="3"></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label for="status">Status</label>
-                            <select id="status" required>
-                                <option value="Pendente">Pendente</option>
-                                <option value="Em Andamento">Em Andamento</option>
-                                <option value="Concluído">Concluído</option>
-                                <option value="Cancelado">Cancelado</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="priority">Prioridade</label>
-                            <select id="priority" required>
-                                <option value="Alta">Alta</option>
-                                <option value="Média">Média</option>
-                                <option value="Baixa">Baixa</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="responsible">Responsável</label>
-                            <input type="text" id="responsible">
-                        </div>
-                        <div class="form-group">
-                            <label for="dueDate">Data de Entrega</label>
-                            <input type="date" id="dueDate">
-                        </div>
-                        <input type="hidden" id="demandId">
-                        <input type="hidden" id="tabId" value="tab1">
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="cancel-btn">Cancelar</button>
-                    <button type="button" id="saveDemandBtn">Salvar</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Modal para adicionar nova aba -->
-        <div class="modal-overlay" id="tabModal">
-            <div class="modal">
-                <div class="modal-header">
-                    <h3 class="modal-title">Nova Aba</h3>
-                    <button class="modal-close">&times;</button>
-                </div>
-                <div class="modal-body">
-                    <form id="tabForm" class="new-tab-form">
-                        <div class="form-group" style="margin-bottom: 0; flex-grow: 1;">
-                            <label for="newTabName">Nome da Aba</label>
-                            <input type="text" id="newTabName" required>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="cancel-btn">Cancelar</button>
-                    <button type="button" id="saveTabBtn">Criar</button>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Modal de confirmação de exclusão -->
-        <div class="modal-overlay" id="deleteModal">
-            <div class="modal">
-                <div class="modal-header">
-                    <h3 class="modal-title">Confirmar Exclusão</h3>
-                    <button class="modal-close">&times;</button>
-                </div>
-                <div class="modal-body">
-                    <p>Tem certeza que deseja excluir esta demanda?</p>
-                    <input type="hidden" id="deleteId">
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="cancel-btn">Cancelar</button>
-                    <button type="button" id="confirmDeleteBtn" style="background-color: #dc2626;">Excluir</button>
-                </div>
-            </div>
-        </div>
+      </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
     <script>
-        // Armazenar as demandas
-        let demands = [];
-        let tabs = ["tab1"];
-        let currentTab = "tab1";
-        let currentView = "table";
-        let nextId = 1;
-        let contextMenuDemandId = null;
+      // Armazenar as demandas
+      let demands = [];
+      let tabs = ["tab1"];
+      let currentTab = "tab1";
+      let currentView = "table";
+      let nextId = 1;
+      let contextMenuDemandId = null;
 
-        // Elementos DOM
-        const newDemandBtn = document.getElementById('newDemandBtn');
-        const newTabBtn = document.getElementById('newTabBtn');
-        const demandModal = document.getElementById('demandModal');
-        const tabModal = document.getElementById('tabModal');
-        const deleteModal = document.getElementById('deleteModal');
-        const saveDemandBtn = document.getElementById('saveDemandBtn');
-        const saveTabBtn = document.getElementById('saveTabBtn');
-        const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
-        const demandForm = document.getElementById('demandForm');
-        const tabForm = document.getElementById('tabForm');
-        const tabsContainer = document.getElementById('tabsContainer');
-        const demandsTable = document.getElementById('demandsTable');
-        const modalCloseButtons = document.querySelectorAll('.modal-close, .cancel-btn');
-        const viewOptions = document.querySelectorAll('.view-option');
-        const contextMenu = document.getElementById('contextMenu');
-        const searchInput = document.getElementById('searchInput');
+      // Elementos DOM
+      const newDemandBtn = document.getElementById("newDemandBtn");
+      const newTabBtn = document.getElementById("newTabBtn");
+      const demandModal = document.getElementById("demandModal");
+      const tabModal = document.getElementById("tabModal");
+      const deleteModal = document.getElementById("deleteModal");
+      const saveDemandBtn = document.getElementById("saveDemandBtn");
+      const saveTabBtn = document.getElementById("saveTabBtn");
+      const confirmDeleteBtn = document.getElementById("confirmDeleteBtn");
+      const demandForm = document.getElementById("demandForm");
+      const tabForm = document.getElementById("tabForm");
+      const tabsContainer = document.getElementById("tabsContainer");
+      const demandsTable = document.getElementById("demandsTable");
+      const modalCloseButtons = document.querySelectorAll(
+        ".modal-close, .cancel-btn"
+      );
+      const viewOptions = document.querySelectorAll(".view-option");
+      const contextMenu = document.getElementById("contextMenu");
+      const searchInput = document.getElementById("searchInput");
+      const themeToggle = document.getElementById("themeToggle");
 
-        // Dados de exemplo
-        const exampleDemands = [
-            {
-                id: nextId++,
-                title: "Criar dashboard de vendas",
-                description: "Desenvolver um dashboard com métricas de vendas para a equipe comercial",
-                status: "Em Andamento",
-                priority: "Alta",
-                responsible: "Ana Silva",
-                dueDate: "2025-03-20",
-                tabId: "tab1"
-            },
-            {
-                id: nextId++,
-                title: "Atualizar documentação do projeto",
-                description: "Revisar e atualizar a documentação técnica do projeto XYZ",
-                status: "Pendente",
-                priority: "Média",
-                responsible: "Carlos Mendes",
-                dueDate: "2025-03-25",
-                tabId: "tab1"
-            },
-            {
-                id: nextId++,
-                title: "Corrigir bug na tela de login",
-                description: "Resolver problema que impede usuários de fazer login em dispositivos móveis",
-                status: "Concluído",
-                priority: "Alta",
-                responsible: "Mariana Costa",
-                dueDate: "2025-03-15",
-                tabId: "tab1"
-            }
-        ];
+      // Dados de exemplo
+      const exampleDemands = [
+        {
+          id: nextId++,
+          title: "Criar dashboard de vendas",
+          description:
+            "Desenvolver um dashboard com métricas de vendas para a equipe comercial",
+          status: "Em Andamento",
+          priority: "Alta",
+          responsible: "Ana Silva",
+          dueDate: "2025-03-20",
+          tabId: "tab1",
+        },
+        {
+          id: nextId++,
+          title: "Atualizar documentação do projeto",
+          description:
+            "Revisar e atualizar a documentação técnica do projeto XYZ",
+          status: "Pendente",
+          priority: "Média",
+          responsible: "Carlos Mendes",
+          dueDate: "2025-03-25",
+          tabId: "tab1",
+        },
+        {
+          id: nextId++,
+          title: "Corrigir bug na tela de login",
+          description:
+            "Resolver problema que impede usuários de fazer login em dispositivos móveis",
+          status: "Concluído",
+          priority: "Alta",
+          responsible: "Mariana Costa",
+          dueDate: "2025-03-15",
+          tabId: "tab1",
+        },
+      ];
 
-        // Adicionar dados de exemplo
-        demands = [...exampleDemands];
+      // Adicionar dados de exemplo
+      demands = [...exampleDemands];
 
-        // Inicializar o dashboard
-        document.addEventListener('DOMContentLoaded', function() {
-            renderDemands();
+      // Inicializar o dashboard
+      document.addEventListener("DOMContentLoaded", function () {
+        renderDemands();
+        initCalendar();
+        initSortable();
 
-            // Event Listeners
-            newDemandBtn.addEventListener('click', openNewDemandModal);
-            newTabBtn.addEventListener('click', openNewTabModal);
-            saveDemandBtn.addEventListener('click', saveDemand);
-            saveTabBtn.addEventListener('click', saveTab);
-            confirmDeleteBtn.addEventListener('click', confirmDelete);
-            searchInput.addEventListener('input', filterDemands);
+        // Event Listeners
+        newDemandBtn.addEventListener("click", openNewDemandModal);
+        newTabBtn.addEventListener("click", openNewTabModal);
+        saveDemandBtn.addEventListener("click", saveDemand);
+        saveTabBtn.addEventListener("click", saveTab);
+        confirmDeleteBtn.addEventListener("click", confirmDelete);
+        searchInput.addEventListener("input", filterDemands);
+        themeToggle.addEventListener("click", toggleTheme);
 
-            modalCloseButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    closeAllModals();
-                });
-            });
-            
-            viewOptions.forEach(option => {
-                option.addEventListener('click', function() {
-                    const view = this.getAttribute('data-view');
-                    changeView(view);
-                });
-            });
-
-            // Event listeners para o menu de contexto
-            document.addEventListener('click', function(e) {
-                if (!contextMenu.contains(e.target)) {
-                    contextMenu.style.display = 'none';
-                }
-            });
-
-            // Itens do menu de contexto
-            document.querySelector('.edit-item').addEventListener('click', function() {
-                if (contextMenuDemandId) {
-                    editDemand(contextMenuDemandId);
-                    contextMenu.style.display = 'none';
-                }
-            });
-
-            document.querySelector('.delete-item').addEventListener('click', function() {
-                if (contextMenuDemandId) {
-                    openDeleteModal(contextMenuDemandId);
-                    contextMenu.style.display = 'none';
-                }
-            });
-            
-            // Adicionar event listener para as abas
-            tabsContainer.addEventListener('click', function(e) {
-                if (e.target.classList.contains('tab')) {
-                    const tabId = e.target.getAttribute('data-tab');
-                    changeTab(tabId);
-                }
-            });
+        modalCloseButtons.forEach((button) => {
+          button.addEventListener("click", function () {
+            closeAllModals();
+          });
         });
 
-        // Mudar de aba
-        function changeTab(tabId) {
-            // Remover classe ativa de todas as abas
-            document.querySelectorAll('.tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            
-            // Remover classe ativa de todos os conteúdos
-            document.querySelectorAll('.tab-content').forEach(content => {
-                content.classList.remove('active');
-            });
-            
-            // Adicionar classe ativa à aba selecionada
-            document.querySelector(`.tab[data-tab="${tabId}"]`).classList.add('active');
-            
-            // Adicionar classe ativa ao conteúdo selecionado
-            const tabContent = document.getElementById(tabId);
-            if (tabContent) {
-                tabContent.classList.add('active');
-            } else {
-                // Criar conteúdo da aba se não existir
-                createTabContent(tabId);
+        viewOptions.forEach((option) => {
+          option.addEventListener("click", function () {
+            const view = this.getAttribute("data-view");
+            changeView(view);
+          });
+        });
+
+        // Event listeners para o menu de contexto
+        document.addEventListener("click", function (e) {
+          if (!contextMenu.contains(e.target)) {
+            contextMenu.style.display = "none";
+          }
+        });
+
+        // Itens do menu de contexto
+        document
+          .querySelector(".edit-item")
+          .addEventListener("click", function () {
+            if (contextMenuDemandId) {
+              editDemand(contextMenuDemandId);
+              contextMenu.style.display = "none";
             }
-            
-            // Atualizar aba atual
-            currentTab = tabId;
-            
-            // Renderizar demandas para a nova aba
-            renderDemands();
+          });
+
+        document
+          .querySelector(".delete-item")
+          .addEventListener("click", function () {
+            if (contextMenuDemandId) {
+              openDeleteModal(contextMenuDemandId);
+              contextMenu.style.display = "none";
+            }
+          });
+
+        // Adicionar event listener para as abas
+        tabsContainer.addEventListener("click", function (e) {
+          if (e.target.classList.contains("tab")) {
+            const tabId = e.target.getAttribute("data-tab");
+            changeTab(tabId);
+          }
+        });
+      });
+
+      // Mudar de aba
+      function changeTab(tabId) {
+        // Remover classe ativa de todas as abas
+        document.querySelectorAll(".tab").forEach((tab) => {
+          tab.classList.remove("active");
+        });
+
+        // Remover classe ativa de todos os conteúdos
+        document.querySelectorAll(".tab-content").forEach((content) => {
+          content.classList.remove("active");
+        });
+
+        // Adicionar classe ativa à aba selecionada
+        document
+          .querySelector(`.tab[data-tab="${tabId}"]`)
+          .classList.add("active");
+
+        // Adicionar classe ativa ao conteúdo selecionado
+        const tabContent = document.getElementById(tabId);
+        if (tabContent) {
+          tabContent.classList.add("active");
+        } else {
+          // Criar conteúdo da aba se não existir
+          createTabContent(tabId);
         }
-        
-        // Criar conteúdo para uma nova aba
-        function createTabContent(tabId) {
-            const tabContent = document.createElement('div');
-            tabContent.className = 'tab-content active';
-            tabContent.id = tabId;
-            tabContent.innerHTML = `
-                <div class="view table-view ${currentView === 'table' ? 'active' : ''}">
+
+        // Atualizar aba atual
+        currentTab = tabId;
+
+        // Renderizar demandas para a nova aba
+        renderDemands();
+      }
+
+      // Criar conteúdo para uma nova aba
+      function createTabContent(tabId) {
+        const tabContent = document.createElement("div");
+        tabContent.className = "tab-content active";
+        tabContent.id = tabId;
+        tabContent.innerHTML = `
+                <div class="view table-view ${
+                  currentView === "table" ? "active" : ""
+                }">
                     <table>
                         <thead>
                             <tr>
@@ -828,7 +821,9 @@
                     </table>
                 </div>
                 
-                <div class="view kanban-view ${currentView === 'kanban' ? 'active' : ''}">
+                <div class="view kanban-view ${
+                  currentView === "kanban" ? "active" : ""
+                }">
                     <div class="kanban-column">
                         <div class="kanban-header">
                             <span>Pendente</span>
@@ -870,66 +865,73 @@
                     </div>
                 </div>
             `;
-            
-            document.querySelector('.container').appendChild(tabContent);
-        }
 
-        // Alterar entre visualizações (tabela/kanban)
-        function changeView(view) {
-            currentView = view;
-            
-            // Atualizar visualização ativa
-            document.querySelectorAll('.view-option').forEach(option => {
-                option.classList.remove('active');
-            });
-            document.querySelector(`.view-option[data-view="${view}"]`).classList.add('active');
-            
-            // Atualizar visualização no conteúdo atual
-            const tabContent = document.getElementById(currentTab);
-            
-            if (tabContent) {
-                tabContent.querySelectorAll('.view').forEach(v => {
-                    v.classList.remove('active');
-                });
-                
-                const activeView = tabContent.querySelector(`.${view}-view`);
-                if (activeView) {
-                    activeView.classList.add('active');
-                }
-            }
-            
-            // Renderizar demandas
-            renderDemands();
+        document.querySelector(".container").appendChild(tabContent);
+      }
+
+      // Alterar entre visualizações (tabela/kanban/calendário)
+      function changeView(view) {
+        currentView = view;
+
+        // Atualizar visualização ativa
+        document.querySelectorAll(".view-option").forEach((option) => {
+          option.classList.remove("active");
+        });
+        document
+          .querySelector(`.view-option[data-view="${view}"]`)
+          .classList.add("active");
+
+        // Atualizar visualização no conteúdo atual
+        const tabContent = document.getElementById(currentTab);
+
+        if (tabContent) {
+          tabContent.querySelectorAll(".view").forEach((v) => {
+            v.classList.remove("active");
+          });
+
+          const activeView = tabContent.querySelector(`.${view}-view`);
+          if (activeView) {
+            activeView.classList.add("active");
+          }
         }
 
         // Renderizar demandas
-        function renderDemands() {
-            const tabContent = document.getElementById(currentTab);
-            if (!tabContent) return;
-            
-            // Obter tabela de demandas
-            const demandsTable = tabContent.querySelector('.table-view tbody');
-            if (!demandsTable) return;
-            
-            // Limpar tabela
-            demandsTable.innerHTML = '';
-            
-            // Filtrar demandas da aba atual
-            const searchTerm = searchInput.value.toLowerCase();
-            let tabDemands = demands.filter(demand => demand.tabId === currentTab);
-            
-            // Filtrar por termo de busca
-            if (searchTerm) {
-                tabDemands = tabDemands.filter(demand => 
-                    demand.title.toLowerCase().includes(searchTerm) || 
-                    (demand.description && demand.description.toLowerCase().includes(searchTerm)) ||
-                    (demand.responsible && demand.responsible.toLowerCase().includes(searchTerm))
-                );
-            }
-            
-            // Verificar se há demandas
-    if (tabDemands.length === 0) {
-        demandsTable.innerHTML = `
+        renderDemands();
+      }
+
+      // Renderizar demandas
+      function renderDemands() {
+        const tabContent = document.getElementById(currentTab);
+        if (!tabContent) return;
+
+        // Obter tabela de demandas
+        const demandsTable = tabContent.querySelector(".table-view tbody");
+        if (!demandsTable) return;
+
+        // Limpar tabela
+        demandsTable.innerHTML = "";
+
+        // Filtrar demandas da aba atual
+        const searchTerm = searchInput.value.toLowerCase();
+        let tabDemands = demands.filter(
+          (demand) => demand.tabId === currentTab
+        );
+
+        // Filtrar por termo de busca
+        if (searchTerm) {
+          tabDemands = tabDemands.filter(
+            (demand) =>
+              demand.title.toLowerCase().includes(searchTerm) ||
+              (demand.description &&
+                demand.description.toLowerCase().includes(searchTerm)) ||
+              (demand.responsible &&
+                demand.responsible.toLowerCase().includes(searchTerm))
+          );
+        }
+
+        // Verificar se há demandas
+        if (tabDemands.length === 0) {
+          demandsTable.innerHTML = `
             <tr>
                 <td colspan="5" class="empty-state">
                     <h3>Nenhuma demanda encontrada</h3>
@@ -938,246 +940,336 @@
                 </td>
             </tr>
         `;
-        
-        // Adicionar event listener para o botão de nova demanda
-        const emptyStateBtn = tabContent.querySelector('#emptyStateBtn');
-        if (emptyStateBtn) {
-            emptyStateBtn.addEventListener('click', openNewDemandModal);
-        }
-    } else {
-        // Preencher tabela com demandas
-        tabDemands.forEach(demand => {
-            const row = document.createElement('tr');
-            row.setAttribute('data-id', demand.id);
-            row.setAttribute('data-tab', demand.tabId);
-            
+
+          // Adicionar event listener para o botão de nova demanda
+          const emptyStateBtn = tabContent.querySelector("#emptyStateBtn");
+          if (emptyStateBtn) {
+            emptyStateBtn.addEventListener("click", openNewDemandModal);
+          }
+        } else {
+          // Preencher tabela com demandas
+          tabDemands.forEach((demand) => {
+            const row = document.createElement("tr");
+            row.setAttribute("data-id", demand.id);
+            row.setAttribute("data-tab", demand.tabId);
+
             const priorityClass = `priority-${demand.priority.toLowerCase()}`;
-            const statusClass = `status-${demand.status.toLowerCase().replace(' ', '-')}`;
-            
+            const statusClass = `status-${demand.status
+              .toLowerCase()
+              .replace(" ", "-")}`;
+
             row.innerHTML = `
                 <td>${demand.title}</td>
-                <td><span class="status-badge ${statusClass}">${demand.status}</span></td>
+                <td><span class="status-badge ${statusClass}">${
+              demand.status
+            }</span></td>
                 <td>
                     <span class="priority-badge ${priorityClass}">
-                        ${demand.priority === 'Alta' ? '🔴' : demand.priority === 'Média' ? '🟠' : '🟢'}
+                        ${
+                          demand.priority === "Alta"
+                            ? "🔴"
+                            : demand.priority === "Média"
+                            ? "🟠"
+                            : "🟢"
+                        }
                         ${demand.priority}
                     </span>
                 </td>
-                <td>${demand.responsible || '-'}</td>
-                <td>${formatDate(demand.dueDate) || '-'}</td>
+                <td>${demand.responsible || "-"}</td>
+                <td>${formatDate(demand.dueDate) || "-"}</td>
             `;
-            
-            // Adicionar evento de clique para abrir modal de edição
-            row.addEventListener('click', function() {
-                editDemand(demand.id);
-            });
-            
-            // Adicionar evento de clique direito para abrir menu de contexto
-            row.addEventListener('contextmenu', function(e) {
-                e.preventDefault();
-                openContextMenu(e, demand.id);
-            });
-            
-            demandsTable.appendChild(row);
-        });
-    }
-    
-    // Renderizar visualização Kanban
-    renderKanbanView();
-}
 
-// Renderizar visualização Kanban
-function renderKanbanView() {
-    const tabContent = document.getElementById(currentTab);
-    if (!tabContent) return;
-    
-    // Obter todas as colunas do Kanban
-    const kanbanColumns = tabContent.querySelectorAll('.kanban-items');
-    
-    // Limpar todas as colunas
-    kanbanColumns.forEach(column => {
-        column.innerHTML = '';
-    });
-    
-    // Filtrar demandas da aba atual
-    const searchTerm = searchInput.value.toLowerCase();
-    let tabDemands = demands.filter(demand => demand.tabId === currentTab);
-    
-    // Filtrar por termo de busca
-    if (searchTerm) {
-        tabDemands = tabDemands.filter(demand => 
-            demand.title.toLowerCase().includes(searchTerm) || 
-            (demand.description && demand.description.toLowerCase().includes(searchTerm)) ||
-            (demand.responsible && demand.responsible.toLowerCase().includes(searchTerm))
+            // Adicionar evento de clique para abrir modal de edição
+            row.addEventListener("click", function () {
+              editDemand(demand.id);
+            });
+
+            // Adicionar evento de clique direito para abrir menu de contexto
+            row.addEventListener("contextmenu", function (e) {
+              e.preventDefault();
+              openContextMenu(e, demand.id);
+            });
+
+            demandsTable.appendChild(row);
+          });
+        }
+
+        // Renderizar visualização Kanban
+        renderKanbanView();
+      }
+
+      // Renderizar visualização Kanban
+      function renderKanbanView() {
+        const tabContent = document.getElementById(currentTab);
+        if (!tabContent) return;
+
+        // Obter todas as colunas do Kanban
+        const kanbanColumns = tabContent.querySelectorAll(".kanban-items");
+
+        // Limpar todas as colunas
+        kanbanColumns.forEach((column) => {
+          column.innerHTML = "";
+        });
+
+        // Filtrar demandas da aba atual
+        const searchTerm = searchInput.value.toLowerCase();
+        let tabDemands = demands.filter(
+          (demand) => demand.tabId === currentTab
         );
-    }
-    
-    // Agrupar demandas por status
-    const demandsByStatus = {};
-    
-    kanbanColumns.forEach(column => {
-        const status = column.getAttribute('data-status');
-        demandsByStatus[status] = tabDemands.filter(demand => demand.status === status);
-    });
-    
-    // Preencher cada coluna com suas demandas
-    kanbanColumns.forEach(column => {
-        const status = column.getAttribute('data-status');
-        const statusDemands = demandsByStatus[status] || [];
-        
-        // Atualizar contador
-        const columnHeader = column.closest('.kanban-column').querySelector('.kanban-count');
-        columnHeader.textContent = statusDemands.length;
-        
-        // Verificar se há demandas
-        if (statusDemands.length === 0) {
+
+        // Filtrar por termo de busca
+        if (searchTerm) {
+          tabDemands = tabDemands.filter(
+            (demand) =>
+              demand.title.toLowerCase().includes(searchTerm) ||
+              (demand.description &&
+                demand.description.toLowerCase().includes(searchTerm)) ||
+              (demand.responsible &&
+                demand.responsible.toLowerCase().includes(searchTerm))
+          );
+        }
+
+        // Agrupar demandas por status
+        const demandsByStatus = {};
+
+        kanbanColumns.forEach((column) => {
+          const status = column.getAttribute("data-status");
+          demandsByStatus[status] = tabDemands.filter(
+            (demand) => demand.status === status
+          );
+        });
+
+        // Preencher cada coluna com suas demandas
+        kanbanColumns.forEach((column) => {
+          const status = column.getAttribute("data-status");
+          const statusDemands = demandsByStatus[status] || [];
+
+          // Atualizar contador
+          const columnHeader = column
+            .closest(".kanban-column")
+            .querySelector(".kanban-count");
+          columnHeader.textContent = statusDemands.length;
+
+          // Verificar se há demandas
+          if (statusDemands.length === 0) {
             column.innerHTML = `
                 <div class="empty-state" style="padding: 20px; text-align: center;">
                     <p style="color: var(--text-light); font-size: 13px;">Nenhuma demanda</p>
                 </div>
             `;
-        } else {
+          } else {
             // Preencher coluna com cartões de demandas
-            statusDemands.forEach(demand => {
-                const card = document.createElement('div');
-                card.className = 'kanban-item';
-                card.setAttribute('data-id', demand.id);
-                
-                const priorityClass = `priority-${demand.priority.toLowerCase()}`;
-                
-                card.innerHTML = `
-                    <div class="kanban-item-title truncate">${demand.title}</div>
+            statusDemands.forEach((demand) => {
+              const card = document.createElement("div");
+              card.className = "kanban-item";
+              card.setAttribute("data-id", demand.id);
+
+              const priorityClass = `priority-${demand.priority.toLowerCase()}`;
+
+              card.innerHTML = `
+                    <div class="kanban-item-title truncate">${
+                      demand.title
+                    }</div>
                     <div class="truncate" style="font-size: 12px; color: var(--text-light);">
-                        ${demand.description ? demand.description.substring(0, 60) + (demand.description.length > 60 ? '...' : '') : ''}
+                        ${
+                          demand.description
+                            ? demand.description.substring(0, 60) +
+                              (demand.description.length > 60 ? "..." : "")
+                            : ""
+                        }
                     </div>
                     <div class="kanban-item-footer">
                         <span class="priority-badge ${priorityClass}">
-                            ${demand.priority === 'Alta' ? '🔴' : demand.priority === 'Média' ? '🟠' : '🟢'}
+                            ${
+                              demand.priority === "Alta"
+                                ? "🔴"
+                                : demand.priority === "Média"
+                                ? "🟠"
+                                : "🟢"
+                            }
                         </span>
-                        <span>${demand.responsible || '-'}</span>
+                        <span>${demand.responsible || "-"}</span>
                     </div>
                 `;
-                
-                // Adicionar evento de clique para abrir modal de edição
-                card.addEventListener('click', function() {
-                    editDemand(demand.id);
-                });
-                
-                // Adicionar evento de clique direito para abrir menu de contexto
-                card.addEventListener('contextmenu', function(e) {
-                    e.preventDefault();
-                    openContextMenu(e, demand.id);
-                });
-                
-                column.appendChild(card);
+
+              // Adicionar evento de clique para abrir modal de edição
+              card.addEventListener("click", function () {
+                editDemand(demand.id);
+              });
+
+              // Adicionar evento de clique direito para abrir menu de contexto
+              card.addEventListener("contextmenu", function (e) {
+                e.preventDefault();
+                openContextMenu(e, demand.id);
+              });
+
+              column.appendChild(card);
             });
+          }
+        });
+      }
+
+      // Inicializar calendário
+      function initCalendar() {
+        const calendarEl = document.getElementById("calendar");
+        if (!calendarEl) return;
+
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+          initialView: "dayGridMonth",
+          events: demands.map((demand) => ({
+            title: demand.title,
+            start: demand.dueDate,
+            extendedProps: {
+              description: demand.description,
+              status: demand.status,
+            },
+          })),
+        });
+
+        calendar.render();
+      }
+
+      // Inicializar arrastar e soltar
+      function initSortable() {
+        const kanbanColumns = document.querySelectorAll(".kanban-items");
+
+        kanbanColumns.forEach((column) => {
+          new Sortable(column, {
+            group: "kanban",
+            animation: 150,
+            onEnd: function (evt) {
+              const demandId = evt.item.getAttribute("data-id");
+              const newStatus = evt.to.getAttribute("data-status");
+
+              // Atualizar status da demanda
+              const demand = demands.find(
+                (d) => d.id === parseInt(demandId)
+              );
+              if (demand) {
+                demand.status = newStatus;
+                renderDemands();
+              }
+            },
+          });
+        });
+      }
+
+      // Alternar tema claro/escuro
+      function toggleTheme() {
+        document.body.classList.toggle("dark-theme");
+
+        if (document.body.classList.contains("dark-theme")) {
+          themeToggle.innerHTML = '<i class="fas fa-sun"></i> Tema Claro';
+        } else {
+          themeToggle.innerHTML = '<i class="fas fa-moon"></i> Tema Escuro';
         }
-    });
-}
+      }
 
-// Abrir menu de contexto
-function openContextMenu(e, demandId) {
-    contextMenuDemandId = demandId;
-    
-    // Posicionar menu
-    contextMenu.style.display = 'block';
-    contextMenu.style.left = `${e.pageX}px`;
-    contextMenu.style.top = `${e.pageY}px`;
-    
-    // Ajustar posição se estiver fora da tela
-    const rect = contextMenu.getBoundingClientRect();
-    const windowWidth = window.innerWidth;
-    const windowHeight = window.innerHeight;
-    
-    if (rect.right > windowWidth) {
-        contextMenu.style.left = `${e.pageX - rect.width}px`;
-    }
-    
-    if (rect.bottom > windowHeight) {
-        contextMenu.style.top = `${e.pageY - rect.height}px`;
-    }
-}
+      // Abrir menu de contexto
+      function openContextMenu(e, demandId) {
+        contextMenuDemandId = demandId;
 
-// Filtrar demandas
-function filterDemands() {
-    renderDemands();
-}
+        // Posicionar menu
+        contextMenu.style.display = "block";
+        contextMenu.style.left = `${e.pageX}px`;
+        contextMenu.style.top = `${e.pageY}px`;
 
-// Abrir modal para nova demanda
-function openNewDemandModal() {
-    demandForm.reset();
-    document.getElementById('demandId').value = '';
-    document.getElementById('tabId').value = currentTab;
-    document.getElementById('demandModalTitle').textContent = 'Nova Demanda';
-    demandModal.style.display = 'flex';
-}
+        // Ajustar posição se estiver fora da tela
+        const rect = contextMenu.getBoundingClientRect();
+        const windowWidth = window.innerWidth;
+        const windowHeight = window.innerHeight;
 
-// Abrir modal para edição de demanda
-function editDemand(id) {
-    const demand = demands.find(d => d.id === id);
-    if (!demand) return;
-    
-    document.getElementById('demandModalTitle').textContent = 'Editar Demanda';
-    document.getElementById('title').value = demand.title;
-    document.getElementById('description').value = demand.description || '';
-    document.getElementById('status').value = demand.status;
-    document.getElementById('priority').value = demand.priority;
-    document.getElementById('responsible').value = demand.responsible || '';
-    document.getElementById('dueDate').value = demand.dueDate || '';
-    document.getElementById('demandId').value = demand.id;
-    document.getElementById('tabId').value = demand.tabId;
-    
-    demandModal.style.display = 'flex';
-}
+        if (rect.right > windowWidth) {
+          contextMenu.style.left = `${e.pageX - rect.width}px`;
+        }
 
-// Abrir modal para excluir demanda
-function openDeleteModal(id) {
-    document.getElementById('deleteId').value = id;
-    deleteModal.style.display = 'flex';
-}
+        if (rect.bottom > windowHeight) {
+          contextMenu.style.top = `${e.pageY - rect.height}px`;
+        }
+      }
 
-// Abrir modal para nova aba
-function openNewTabModal() {
-    tabForm.reset();
-    tabModal.style.display = 'flex';
-}
+      // Filtrar demandas
+      function filterDemands() {
+        renderDemands();
+      }
 
-// Salvar demanda
-function saveDemand() {
-    const form = document.getElementById('demandForm');
-    
-    if (!form.checkValidity()) {
-        form.reportValidity();
-        return;
-    }
-    
-    const id = document.getElementById('demandId').value;
-    const title = document.getElementById('title').value;
-    const description = document.getElementById('description').value;
-    const status = document.getElementById('status').value;
-    const priority = document.getElementById('priority').value;
-    const responsible = document.getElementById('responsible').value;
-    const dueDate = document.getElementById('dueDate').value;
-    const tabId = document.getElementById('tabId').value;
-    
-    if (id) {
-        // Atualizar demanda existente
-        const index = demands.findIndex(d => d.id === parseInt(id));
-        if (index !== -1) {
+      // Abrir modal para nova demanda
+      function openNewDemandModal() {
+        demandForm.reset();
+        document.getElementById("demandId").value = "";
+        document.getElementById("tabId").value = currentTab;
+        document.getElementById("demandModalTitle").textContent =
+          "Nova Demanda";
+        demandModal.style.display = "flex";
+      }
+
+      // Abrir modal para edição de demanda
+      function editDemand(id) {
+        const demand = demands.find((d) => d.id === id);
+        if (!demand) return;
+
+        document.getElementById("demandModalTitle").textContent =
+          "Editar Demanda";
+        document.getElementById("title").value = demand.title;
+        document.getElementById("description").value = demand.description || "";
+        document.getElementById("status").value = demand.status;
+        document.getElementById("priority").value = demand.priority;
+        document.getElementById("responsible").value = demand.responsible || "";
+        document.getElementById("dueDate").value = demand.dueDate || "";
+        document.getElementById("demandId").value = demand.id;
+        document.getElementById("tabId").value = demand.tabId;
+
+        demandModal.style.display = "flex";
+      }
+
+      // Abrir modal para excluir demanda
+      function openDeleteModal(id) {
+        document.getElementById("deleteId").value = id;
+        deleteModal.style.display = "flex";
+      }
+
+      // Abrir modal para nova aba
+      function openNewTabModal() {
+        tabForm.reset();
+        tabModal.style.display = "flex";
+      }
+
+      // Salvar demanda
+      function saveDemand() {
+        const form = document.getElementById("demandForm");
+
+        if (!form.checkValidity()) {
+          form.reportValidity();
+          return;
+        }
+
+        const id = document.getElementById("demandId").value;
+        const title = document.getElementById("title").value;
+        const description = document.getElementById("description").value;
+        const status = document.getElementById("status").value;
+        const priority = document.getElementById("priority").value;
+        const responsible = document.getElementById("responsible").value;
+        const dueDate = document.getElementById("dueDate").value;
+        const tabId = document.getElementById("tabId").value;
+
+        if (id) {
+          // Atualizar demanda existente
+          const index = demands.findIndex((d) => d.id === parseInt(id));
+          if (index !== -1) {
             demands[index] = {
-                ...demands[index],
-                title,
-                description,
-                status,
-                priority,
-                responsible,
-                dueDate,
-                tabId
+              ...demands[index],
+              title,
+              description,
+              status,
+              priority,
+              responsible,
+              dueDate,
+              tabId,
             };
-        }
-    } else {
-        // Adicionar nova demanda
-        const newDemand = {
+          }
+        } else {
+          // Adicionar nova demanda
+          const newDemand = {
             id: nextId++,
             title,
             description,
@@ -1185,71 +1277,71 @@ function saveDemand() {
             priority,
             responsible,
             dueDate,
-            tabId
-        };
-        
-        demands.push(newDemand);
-    }
-    
-    closeAllModals();
-    renderDemands();
-}
+            tabId,
+          };
 
-// Salvar nova aba
-function saveTab() {
-    const form = document.getElementById('tabForm');
-    
-    if (!form.checkValidity()) {
-        form.reportValidity();
-        return;
-    }
-    
-    const tabName = document.getElementById('newTabName').value;
-    const tabId = 'tab' + (tabs.length + 1);
-    
-    // Adicionar nova aba
-    tabs.push(tabId);
-    
-    // Criar elemento da aba
-    const tabElement = document.createElement('div');
-    tabElement.className = 'tab';
-    tabElement.setAttribute('data-tab', tabId);
-    tabElement.textContent = tabName;
-    
-    tabsContainer.appendChild(tabElement);
-    
-    // Mudar para a nova aba
-    changeTab(tabId);
-    
-    closeAllModals();
-}
+          demands.push(newDemand);
+        }
 
-// Confirmar exclusão
-function confirmDelete() {
-    const id = parseInt(document.getElementById('deleteId').value);
-    
-    // Remover demanda
-    demands = demands.filter(d => d.id !== id);
-    
-    closeAllModals();
-    renderDemands();
-}
+        closeAllModals();
+        renderDemands();
+      }
 
-// Fechar todos os modais
-function closeAllModals() {
-    const modals = document.querySelectorAll('.modal-overlay');
-    modals.forEach(modal => {
-        modal.style.display = 'none';
-    });
-}
+      // Salvar nova aba
+      function saveTab() {
+        const form = document.getElementById("tabForm");
 
-// Formatar data
-function formatDate(dateString) {
-    if (!dateString) return '';
-    
-    const date = new Date(dateString);
-    return date.toLocaleDateString('pt-BR');
-}
-</script>
-</body>
+        if (!form.checkValidity()) {
+          form.reportValidity();
+          return;
+        }
+
+        const tabName = document.getElementById("newTabName").value;
+        const tabId = "tab" + (tabs.length + 1);
+
+        // Adicionar nova aba
+        tabs.push(tabId);
+
+        // Criar elemento da aba
+        const tabElement = document.createElement("div");
+        tabElement.className = "tab";
+        tabElement.setAttribute("data-tab", tabId);
+        tabElement.textContent = tabName;
+
+        tabsContainer.appendChild(tabElement);
+
+        // Mudar para a nova aba
+        changeTab(tabId);
+
+        closeAllModals();
+      }
+
+      // Confirmar exclusão
+      function confirmDelete() {
+        const id = parseInt(document.getElementById("deleteId").value);
+
+        // Remover demanda
+        demands = demands.filter((d) => d.id !== id);
+
+        closeAllModals();
+        renderDemands();
+      }
+
+      // Fechar todos os modais
+      function closeAllModals() {
+        const modals = document.querySelectorAll(".modal-overlay");
+        modals.forEach((modal) => {
+          modal.style.display = "none";
+        });
+      }
+
+      // Formatar data
+      function formatDate(dateString) {
+        if (!dateString) return "";
+
+        const date = new Date(dateString);
+        return date.toLocaleDateString("pt-BR");
+      }
+    </script>
+  </body>
 </html>
