@@ -1,1347 +1,396 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Dashboard de Demandas</title>
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css"
-    />
-    <style>
-      :root {
-        --primary-color: #2563eb;
-        --hover-color: #1e40af;
-        --bg-color: #f8fafc;
-        --card-color: #ffffff;
-        --border-color: #e2e8f0;
-        --text-color: #334155;
-        --text-light: #64748b;
-        --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-      }
-
-      body.dark-theme {
-        --bg-color: #1a1a1a;
-        --card-color: #2d2d2d;
-        --text-color: #ffffff;
-        --text-light: #a0a0a0;
-        --border-color: #444444;
-      }
-
-      body {
-        background-color: var(--bg-color);
-        color: var(--text-color);
-        padding: 20px;
-        line-height: 1.6;
-        transition: background-color 0.3s, color 0.3s;
-      }
-
-      .container {
-        max-width: 1400px;
-        margin: 0 auto;
-        padding: 20px;
-      }
-
-      .header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 30px;
-      }
-
-      h1 {
-        font-size: 28px;
-        font-weight: 600;
-        color: var(--text-color);
-      }
-
-      .toolbar {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 20px;
-      }
-
-      button {
-        background-color: var(--primary-color);
-        color: white;
-        border: none;
-        border-radius: 8px;
-        padding: 10px 20px;
-        font-size: 14px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        transition: background-color 0.2s;
-      }
-
-      button:hover {
-        background-color: var(--hover-color);
-      }
-
-      .kanban-column {
-        min-width: 300px;
-        background-color: var(--card-color);
-        border-radius: 12px;
-        box-shadow: var(--shadow);
-        padding: 16px;
-      }
-
-      .kanban-item {
-        background-color: var(--bg-color);
-        border-radius: 8px;
-        padding: 16px;
-        margin-bottom: 12px;
-        cursor: pointer;
-        transition: transform 0.2s, box-shadow 0.2s;
-      }
-
-      .kanban-item:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      }
-
-      .tabs {
-        display: flex;
-        border-bottom: 1px solid var(--border-color);
-        margin-bottom: 20px;
-        overflow-x: auto;
-      }
-
-      .tab {
-        padding: 10px 16px;
-        cursor: pointer;
-        border-bottom: 2px solid transparent;
-        font-size: 14px;
-        color: var(--text-light);
-        white-space: nowrap;
-      }
-
-      .tab.active {
-        border-bottom: 2px solid var(--primary-color);
-        color: var(--primary-color);
-        font-weight: 500;
-      }
-
-      .tab:hover:not(.active) {
-        color: var(--text-color);
-      }
-
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-bottom: 20px;
-        background-color: var(--card-color);
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        border-radius: 8px;
-        overflow: hidden;
-      }
-
-      th,
-      td {
-        padding: 12px 16px;
-        text-align: left;
-        border-bottom: 1px solid var(--border-color);
-      }
-
-      th {
-        font-weight: 500;
-        color: var(--text-light);
-        font-size: 14px;
-      }
-
-      tbody tr:hover {
-        background-color: rgba(0, 0, 0, 0.02);
-      }
-
-      tbody tr:last-child td {
-        border-bottom: none;
-      }
-
-      .status-badge {
-        padding: 4px 8px;
-        border-radius: 16px;
-        font-size: 12px;
-        font-weight: 500;
-        display: inline-block;
-      }
-
-      .status-pendente {
-        background-color: #fef3c7;
-        color: #d97706;
-      }
-
-      .status-em-andamento {
-        background-color: #e0f2fe;
-        color: #0284c7;
-      }
-
-      .status-concluido {
-        background-color: #dcfce7;
-        color: #16a34a;
-      }
-
-      .status-cancelado {
-        background-color: #fee2e2;
-        color: #dc2626;
-      }
-
-      .priority-badge {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        font-size: 12px;
-        font-weight: 500;
-      }
-
-      .priority-alta {
-        color: #dc2626;
-      }
-
-      .priority-media {
-        color: #d97706;
-      }
-
-      .priority-baixa {
-        color: #16a34a;
-      }
-
-      .modal-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background-color: rgba(0, 0, 0, 0.5);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 1000;
-        display: none;
-      }
-
-      .modal {
-        background-color: var(--card-color);
-        border-radius: 8px;
-        width: 500px;
-        max-width: 90%;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      }
-
-      .modal-header {
-        padding: 16px;
-        border-bottom: 1px solid var(--border-color);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-
-      .modal-title {
-        font-size: 18px;
-        font-weight: 600;
-      }
-
-      .modal-close {
-        background: none;
-        border: none;
-        font-size: 20px;
-        cursor: pointer;
-        color: var(--text-light);
-      }
-
-      .modal-body {
-        padding: 16px;
-      }
-
-      .form-group {
-        margin-bottom: 16px;
-      }
-
-      label {
-        display: block;
-        margin-bottom: 6px;
-        font-size: 14px;
-        color: var(--text-light);
-      }
-
-      input,
-      select,
-      textarea {
-        width: 100%;
-        padding: 8px 12px;
-        border: 1px solid var(--border-color);
-        border-radius: 6px;
-        font-size: 14px;
-        color: var(--text-color);
-      }
-
-      input:focus,
-      select:focus,
-      textarea:focus {
-        outline: none;
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
-      }
-
-      .modal-footer {
-        padding: 16px;
-        border-top: 1px solid var(--border-color);
-        display: flex;
-        justify-content: flex-end;
-        gap: 8px;
-      }
-
-      .empty-state {
-        padding: 40px;
-        text-align: center;
-        color: var(--text-light);
-      }
-
-      .empty-state h3 {
-        margin-bottom: 10px;
-        font-weight: 500;
-      }
-
-      .empty-state p {
-        margin-bottom: 20px;
-        font-size: 14px;
-      }
-
-      .view-selector {
-        display: flex;
-        margin-bottom: 16px;
-        background-color: var(--card-color);
-        border: 1px solid var(--border-color);
-        border-radius: 6px;
-        overflow: hidden;
-      }
-
-      .view-option {
-        padding: 8px 16px;
-        font-size: 14px;
-        cursor: pointer;
-        flex: 1;
-        text-align: center;
-        border-right: 1px solid var(--border-color);
-      }
-
-      .view-option:last-child {
-        border-right: none;
-      }
-
-      .view-option.active {
-        background-color: var(--primary-color);
-        color: white;
-      }
-
-      .kanban-view {
-        display: flex;
-        gap: 16px;
-        overflow-x: auto;
-        padding-bottom: 16px;
-      }
-
-      .kanban-header {
-        padding: 12px 16px;
-        border-bottom: 1px solid var(--border-color);
-        font-weight: 500;
-        font-size: 14px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-
-      .kanban-count {
-        background-color: var(--bg-color);
-        color: var(--text-light);
-        border-radius: 16px;
-        padding: 2px 8px;
-        font-size: 12px;
-      }
-
-      .kanban-items {
-        padding: 8px;
-        min-height: 100px;
-      }
-
-      .truncate {
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-
-      .context-menu {
-        position: absolute;
-        background-color: var(--card-color);
-        border: 1px solid var(--border-color);
-        border-radius: 6px;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        padding: 8px 0;
-        z-index: 100;
-        display: none;
-      }
-
-      .context-menu-item {
-        padding: 8px 16px;
-        font-size: 14px;
-        cursor: pointer;
-      }
-
-      .context-menu-item:hover {
-        background-color: var(--bg-color);
-      }
-
-      .delete-item {
-        color: #dc2626;
-      }
-
-      .search-bar {
-        flex: 1;
-        max-width: 300px;
-        position: relative;
-        margin-right: auto;
-      }
-
-      .search-bar input {
-        padding-left: 32px;
-        width: 100%;
-      }
-
-      .search-icon {
-        position: absolute;
-        left: 10px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: var(--text-light);
-      }
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <div class="header">
-        <h1>Dashboard de Demandas</h1>
-        <button id="themeToggle">
-          <i class="fas fa-moon"></i> Tema Escuro
-        </button>
-      </div>
-
-      <div class="toolbar">
-        <div class="search-bar">
-          <span class="search-icon">🔍</span>
-          <input
-            type="text"
-            id="searchInput"
-            placeholder="Buscar demandas..."
-          />
-        </div>
-        <button id="newDemandBtn">
-          <i class="fas fa-plus"></i> Nova Demanda
-        </button>
-        <button id="newTabBtn">
-          <i class="fas fa-plus"></i> Nova Aba
-        </button>
-      </div>
-
-      <div class="tabs" id="tabsContainer">
-        <div class="tab active" data-tab="tab1">Todas as Demandas</div>
-      </div>
-
-      <div class="view-selector">
-        <div class="view-option active" data-view="table">Tabela</div>
-        <div class="view-option" data-view="kanban">Kanban</div>
-        <div class="view-option" data-view="calendar">Calendário</div>
-      </div>
-
-      <div class="tab-content active" id="tab1">
-        <div class="view table-view active">
-          <table>
-            <thead>
-              <tr>
-                <th>Título</th>
-                <th>Status</th>
-                <th>Prioridade</th>
-                <th>Responsável</th>
-                <th>Data de Entrega</th>
-              </tr>
-            </thead>
-            <tbody id="demandsTable">
-              <!-- Demandas serão inseridas aqui dinamicamente -->
-            </tbody>
-          </table>
-        </div>
-
-        <div class="view kanban-view">
-          <div class="kanban-column">
-            <div class="kanban-header">
-              <span>Pendente</span>
-              <span class="kanban-count">0</span>
-            </div>
-            <div class="kanban-items" data-status="Pendente">
-              <!-- Itens serão inseridos aqui -->
-            </div>
-          </div>
-
-          <div class="kanban-column">
-            <div class="kanban-header">
-              <span>Em Andamento</span>
-              <span class="kanban-count">0</span>
-            </div>
-            <div class="kanban-items" data-status="Em Andamento">
-              <!-- Itens serão inseridos aqui -->
-            </div>
-          </div>
-
-          <div class="kanban-column">
-            <div class="kanban-header">
-              <span>Concluído</span>
-              <span class="kanban-count">0</span>
-            </div>
-            <div class="kanban-items" data-status="Concluído">
-              <!-- Itens serão inseridos aqui -->
-            </div>
-          </div>
-
-          <div class="kanban-column">
-            <div class="kanban-header">
-              <span>Cancelado</span>
-              <span class="kanban-count">0</span>
-            </div>
-            <div class="kanban-items" data-status="Cancelado">
-              <!-- Itens serão inseridos aqui -->
-            </div>
-          </div>
-        </div>
-
-        <div class="view calendar-view">
-          <div id="calendar"></div>
-        </div>
-      </div>
-
-      <!-- Menu de contexto -->
-      <div class="context-menu" id="contextMenu">
-        <div class="context-menu-item edit-item">Editar</div>
-        <div class="context-menu-item delete-item">Excluir</div>
-      </div>
-
-      <!-- Modal para adicionar nova demanda -->
-      <div class="modal-overlay" id="demandModal">
-        <div class="modal">
-          <div class="modal-header">
-            <h3 class="modal-title" id="demandModalTitle">Nova Demanda</h3>
-            <button class="modal-close">&times;</button>
-          </div>
-          <div class="modal-body">
-            <form id="demandForm">
-              <div class="form-group">
-                <label for="title">Título</label>
-                <input type="text" id="title" required />
-              </div>
-              <div class="form-group">
-                <label for="description">Descrição</label>
-                <textarea id="description" rows="3"></textarea>
-              </div>
-              <div class="form-group">
-                <label for="status">Status</label>
-                <select id="status" required>
-                  <option value="Pendente">Pendente</option>
-                  <option value="Em Andamento">Em Andamento</option>
-                  <option value="Concluído">Concluído</option>
-                  <option value="Cancelado">Cancelado</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label for="priority">Prioridade</label>
-                <select id="priority" required>
-                  <option value="Alta">Alta</option>
-                  <option value="Média">Média</option>
-                  <option value="Baixa">Baixa</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label for="responsible">Responsável</label>
-                <input type="text" id="responsible" />
-              </div>
-              <div class="form-group">
-                <label for="dueDate">Data de Entrega</label>
-                <input type="date" id="dueDate" />
-              </div>
-              <input type="hidden" id="demandId" />
-              <input type="hidden" id="tabId" value="tab1" />
-            </form>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="cancel-btn">Cancelar</button>
-            <button type="button" id="saveDemandBtn">Salvar</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Modal para adicionar nova aba -->
-      <div class="modal-overlay" id="tabModal">
-        <div class="modal">
-          <div class="modal-header">
-            <h3 class="modal-title">Nova Aba</h3>
-            <button class="modal-close">&times;</button>
-          </div>
-          <div class="modal-body">
-            <form id="tabForm" class="new-tab-form">
-              <div class="form-group" style="margin-bottom: 0; flex-grow: 1">
-                <label for="newTabName">Nome da Aba</label>
-                <input type="text" id="newTabName" required />
-              </div>
-            </form>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="cancel-btn">Cancelar</button>
-            <button type="button" id="saveTabBtn">Criar</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Modal de confirmação de exclusão -->
-      <div class="modal-overlay" id="deleteModal">
-        <div class="modal">
-          <div class="modal-header">
-            <h3 class="modal-title">Confirmar Exclusão</h3>
-            <button class="modal-close">&times;</button>
-          </div>
-          <div class="modal-body">
-            <p>Tem certeza que deseja excluir esta demanda?</p>
-            <input type="hidden" id="deleteId" />
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="cancel-btn">Cancelar</button>
-            <button
-              type="button"
-              id="confirmDeleteBtn"
-              style="background-color: #dc2626"
-            >
-              Excluir
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
-    <script>
-      // Armazenar as demandas
-      let demands = [];
-      let tabs = ["tab1"];
-      let currentTab = "tab1";
-      let currentView = "table";
-      let nextId = 1;
-      let contextMenuDemandId = null;
-
-      // Elementos DOM
-      const newDemandBtn = document.getElementById("newDemandBtn");
-      const newTabBtn = document.getElementById("newTabBtn");
-      const demandModal = document.getElementById("demandModal");
-      const tabModal = document.getElementById("tabModal");
-      const deleteModal = document.getElementById("deleteModal");
-      const saveDemandBtn = document.getElementById("saveDemandBtn");
-      const saveTabBtn = document.getElementById("saveTabBtn");
-      const confirmDeleteBtn = document.getElementById("confirmDeleteBtn");
-      const demandForm = document.getElementById("demandForm");
-      const tabForm = document.getElementById("tabForm");
-      const tabsContainer = document.getElementById("tabsContainer");
-      const demandsTable = document.getElementById("demandsTable");
-      const modalCloseButtons = document.querySelectorAll(
-        ".modal-close, .cancel-btn"
-      );
-      const viewOptions = document.querySelectorAll(".view-option");
-      const contextMenu = document.getElementById("contextMenu");
-      const searchInput = document.getElementById("searchInput");
-      const themeToggle = document.getElementById("themeToggle");
-
-      // Dados de exemplo
-      const exampleDemands = [
-        {
-          id: nextId++,
-          title: "Criar dashboard de vendas",
-          description:
-            "Desenvolver um dashboard com métricas de vendas para a equipe comercial",
-          status: "Em Andamento",
-          priority: "Alta",
-          responsible: "Ana Silva",
-          dueDate: "2025-03-20",
-          tabId: "tab1",
-        },
-        {
-          id: nextId++,
-          title: "Atualizar documentação do projeto",
-          description:
-            "Revisar e atualizar a documentação técnica do projeto XYZ",
-          status: "Pendente",
-          priority: "Média",
-          responsible: "Carlos Mendes",
-          dueDate: "2025-03-25",
-          tabId: "tab1",
-        },
-        {
-          id: nextId++,
-          title: "Corrigir bug na tela de login",
-          description:
-            "Resolver problema que impede usuários de fazer login em dispositivos móveis",
-          status: "Concluído",
-          priority: "Alta",
-          responsible: "Mariana Costa",
-          dueDate: "2025-03-15",
-          tabId: "tab1",
-        },
-      ];
-
-      // Adicionar dados de exemplo
-      demands = [...exampleDemands];
-
-      // Inicializar o dashboard
-      document.addEventListener("DOMContentLoaded", function () {
-        renderDemands();
-        initCalendar();
-        initSortable();
-
-        // Event Listeners
-        newDemandBtn.addEventListener("click", openNewDemandModal);
-        newTabBtn.addEventListener("click", openNewTabModal);
-        saveDemandBtn.addEventListener("click", saveDemand);
-        saveTabBtn.addEventListener("click", saveTab);
-        confirmDeleteBtn.addEventListener("click", confirmDelete);
-        searchInput.addEventListener("input", filterDemands);
-        themeToggle.addEventListener("click", toggleTheme);
-
-        modalCloseButtons.forEach((button) => {
-          button.addEventListener("click", function () {
-            closeAllModals();
-          });
-        });
-
-        viewOptions.forEach((option) => {
-          option.addEventListener("click", function () {
-            const view = this.getAttribute("data-view");
-            changeView(view);
-          });
-        });
-
-        // Event listeners para o menu de contexto
-        document.addEventListener("click", function (e) {
-          if (!contextMenu.contains(e.target)) {
-            contextMenu.style.display = "none";
-          }
-        });
-
-        // Itens do menu de contexto
-        document
-          .querySelector(".edit-item")
-          .addEventListener("click", function () {
-            if (contextMenuDemandId) {
-              editDemand(contextMenuDemandId);
-              contextMenu.style.display = "none";
-            }
-          });
-
-        document
-          .querySelector(".delete-item")
-          .addEventListener("click", function () {
-            if (contextMenuDemandId) {
-              openDeleteModal(contextMenuDemandId);
-              contextMenu.style.display = "none";
-            }
-          });
-
-        // Adicionar event listener para as abas
-        tabsContainer.addEventListener("click", function (e) {
-          if (e.target.classList.contains("tab")) {
-            const tabId = e.target.getAttribute("data-tab");
-            changeTab(tabId);
-          }
-        });
-      });
-
-      // Mudar de aba
-      function changeTab(tabId) {
-        // Remover classe ativa de todas as abas
-        document.querySelectorAll(".tab").forEach((tab) => {
-          tab.classList.remove("active");
-        });
-
-        // Remover classe ativa de todos os conteúdos
-        document.querySelectorAll(".tab-content").forEach((content) => {
-          content.classList.remove("active");
-        });
-
-        // Adicionar classe ativa à aba selecionada
-        document
-          .querySelector(`.tab[data-tab="${tabId}"]`)
-          .classList.add("active");
-
-        // Adicionar classe ativa ao conteúdo selecionado
-        const tabContent = document.getElementById(tabId);
-        if (tabContent) {
-          tabContent.classList.add("active");
-        } else {
-          // Criar conteúdo da aba se não existir
-          createTabContent(tabId);
-        }
-
-        // Atualizar aba atual
-        currentTab = tabId;
-
-        // Renderizar demandas para a nova aba
-        renderDemands();
-      }
-
-      // Criar conteúdo para uma nova aba
-      function createTabContent(tabId) {
-        const tabContent = document.createElement("div");
-        tabContent.className = "tab-content active";
-        tabContent.id = tabId;
-        tabContent.innerHTML = `
-                <div class="view table-view ${
-                  currentView === "table" ? "active" : ""
-                }">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Título</th>
-                                <th>Status</th>
-                                <th>Prioridade</th>
-                                <th>Responsável</th>
-                                <th>Data de Entrega</th>
-                            </tr>
-                        </thead>
-                        <tbody class="demands-table">
-                            <!-- Demandas serão inseridas aqui dinamicamente -->
-                        </tbody>
-                    </table>
-                </div>
-                
-                <div class="view kanban-view ${
-                  currentView === "kanban" ? "active" : ""
-                }">
-                    <div class="kanban-column">
-                        <div class="kanban-header">
-                            <span>Pendente</span>
-                            <span class="kanban-count">0</span>
-                        </div>
-                        <div class="kanban-items" data-status="Pendente">
-                            <!-- Itens serão inseridos aqui -->
-                        </div>
-                    </div>
-                    
-                    <div class="kanban-column">
-                        <div class="kanban-header">
-                            <span>Em Andamento</span>
-                            <span class="kanban-count">0</span>
-                        </div>
-                        <div class="kanban-items" data-status="Em Andamento">
-                            <!-- Itens serão inseridos aqui -->
-                        </div>
-                    </div>
-                    
-                    <div class="kanban-column">
-                        <div class="kanban-header">
-                            <span>Concluído</span>
-                            <span class="kanban-count">0</span>
-                        </div>
-                        <div class="kanban-items" data-status="Concluído">
-                            <!-- Itens serão inseridas aqui -->
-                        </div>
-                    </div>
-                    
-                    <div class="kanban-column">
-                        <div class="kanban-header">
-                            <span>Cancelado</span>
-                            <span class="kanban-count">0</span>
-                        </div>
-                        <div class="kanban-items" data-status="Cancelado">
-                            <!-- Itens serão inseridas aqui -->
-                        </div>
-                    </div>
-                </div>
-            `;
-
-        document.querySelector(".container").appendChild(tabContent);
-      }
-
-      // Alterar entre visualizações (tabela/kanban/calendário)
-      function changeView(view) {
-        currentView = view;
-
-        // Atualizar visualização ativa
-        document.querySelectorAll(".view-option").forEach((option) => {
-          option.classList.remove("active");
-        });
-        document
-          .querySelector(`.view-option[data-view="${view}"]`)
-          .classList.add("active");
-
-        // Atualizar visualização no conteúdo atual
-        const tabContent = document.getElementById(currentTab);
-
-        if (tabContent) {
-          tabContent.querySelectorAll(".view").forEach((v) => {
-            v.classList.remove("active");
-          });
-
-          const activeView = tabContent.querySelector(`.${view}-view`);
-          if (activeView) {
-            activeView.classList.add("active");
-          }
-        }
-
-        // Renderizar demandas
-        renderDemands();
-      }
-
-      // Renderizar demandas
-      function renderDemands() {
-        const tabContent = document.getElementById(currentTab);
-        if (!tabContent) return;
-
-        // Obter tabela de demandas
-        const demandsTable = tabContent.querySelector(".table-view tbody");
-        if (!demandsTable) return;
-
-        // Limpar tabela
-        demandsTable.innerHTML = "";
-
-        // Filtrar demandas da aba atual
-        const searchTerm = searchInput.value.toLowerCase();
-        let tabDemands = demands.filter(
-          (demand) => demand.tabId === currentTab
-        );
-
-        // Filtrar por termo de busca
-        if (searchTerm) {
-          tabDemands = tabDemands.filter(
-            (demand) =>
-              demand.title.toLowerCase().includes(searchTerm) ||
-              (demand.description &&
-                demand.description.toLowerCase().includes(searchTerm)) ||
-              (demand.responsible &&
-                demand.responsible.toLowerCase().includes(searchTerm))
-          );
-        }
-
-        // Verificar se há demandas
-        if (tabDemands.length === 0) {
-          demandsTable.innerHTML = `
-            <tr>
-                <td colspan="5" class="empty-state">
-                    <h3>Nenhuma demanda encontrada</h3>
-                    <p>Clique em "Nova Demanda" para adicionar uma demanda</p>
-                    <button id="emptyStateBtn">+ Nova Demanda</button>
-                </td>
-            </tr>
-        `;
-
-          // Adicionar event listener para o botão de nova demanda
-          const emptyStateBtn = tabContent.querySelector("#emptyStateBtn");
-          if (emptyStateBtn) {
-            emptyStateBtn.addEventListener("click", openNewDemandModal);
-          }
-        } else {
-          // Preencher tabela com demandas
-          tabDemands.forEach((demand) => {
-            const row = document.createElement("tr");
-            row.setAttribute("data-id", demand.id);
-            row.setAttribute("data-tab", demand.tabId);
-
-            const priorityClass = `priority-${demand.priority.toLowerCase()}`;
-            const statusClass = `status-${demand.status
-              .toLowerCase()
-              .replace(" ", "-")}`;
-
-            row.innerHTML = `
-                <td>${demand.title}</td>
-                <td><span class="status-badge ${statusClass}">${
-              demand.status
-            }</span></td>
-                <td>
-                    <span class="priority-badge ${priorityClass}">
-                        ${
-                          demand.priority === "Alta"
-                            ? "🔴"
-                            : demand.priority === "Média"
-                            ? "🟠"
-                            : "🟢"
-                        }
-                        ${demand.priority}
-                    </span>
-                </td>
-                <td>${demand.responsible || "-"}</td>
-                <td>${formatDate(demand.dueDate) || "-"}</td>
-            `;
-
-            // Adicionar evento de clique para abrir modal de edição
-            row.addEventListener("click", function () {
-              editDemand(demand.id);
-            });
-
-            // Adicionar evento de clique direito para abrir menu de contexto
-            row.addEventListener("contextmenu", function (e) {
-              e.preventDefault();
-              openContextMenu(e, demand.id);
-            });
-
-            demandsTable.appendChild(row);
-          });
-        }
-
-        // Renderizar visualização Kanban
-        renderKanbanView();
-      }
-
-      // Renderizar visualização Kanban
-      function renderKanbanView() {
-        const tabContent = document.getElementById(currentTab);
-        if (!tabContent) return;
-
-        // Obter todas as colunas do Kanban
-        const kanbanColumns = tabContent.querySelectorAll(".kanban-items");
-
-        // Limpar todas as colunas
-        kanbanColumns.forEach((column) => {
-          column.innerHTML = "";
-        });
-
-        // Filtrar demandas da aba atual
-        const searchTerm = searchInput.value.toLowerCase();
-        let tabDemands = demands.filter(
-          (demand) => demand.tabId === currentTab
-        );
-
-        // Filtrar por termo de busca
-        if (searchTerm) {
-          tabDemands = tabDemands.filter(
-            (demand) =>
-              demand.title.toLowerCase().includes(searchTerm) ||
-              (demand.description &&
-                demand.description.toLowerCase().includes(searchTerm)) ||
-              (demand.responsible &&
-                demand.responsible.toLowerCase().includes(searchTerm))
-          );
-        }
-
-        // Agrupar demandas por status
-        const demandsByStatus = {};
-
-        kanbanColumns.forEach((column) => {
-          const status = column.getAttribute("data-status");
-          demandsByStatus[status] = tabDemands.filter(
-            (demand) => demand.status === status
-          );
-        });
-
-        // Preencher cada coluna com suas demandas
-        kanbanColumns.forEach((column) => {
-          const status = column.getAttribute("data-status");
-          const statusDemands = demandsByStatus[status] || [];
-
-          // Atualizar contador
-          const columnHeader = column
-            .closest(".kanban-column")
-            .querySelector(".kanban-count");
-          columnHeader.textContent = statusDemands.length;
-
-          // Verificar se há demandas
-          if (statusDemands.length === 0) {
-            column.innerHTML = `
-                <div class="empty-state" style="padding: 20px; text-align: center;">
-                    <p style="color: var(--text-light); font-size: 13px;">Nenhuma demanda</p>
-                </div>
-            `;
-          } else {
-            // Preencher coluna com cartões de demandas
-            statusDemands.forEach((demand) => {
-              const card = document.createElement("div");
-              card.className = "kanban-item";
-              card.setAttribute("data-id", demand.id);
-
-              const priorityClass = `priority-${demand.priority.toLowerCase()}`;
-
-              card.innerHTML = `
-                    <div class="kanban-item-title truncate">${
-                      demand.title
-                    }</div>
-                    <div class="truncate" style="font-size: 12px; color: var(--text-light);">
-                        ${
-                          demand.description
-                            ? demand.description.substring(0, 60) +
-                              (demand.description.length > 60 ? "..." : "")
-                            : ""
-                        }
-                    </div>
-                    <div class="kanban-item-footer">
-                        <span class="priority-badge ${priorityClass}">
-                            ${
-                              demand.priority === "Alta"
-                                ? "🔴"
-                                : demand.priority === "Média"
-                                ? "🟠"
-                                : "🟢"
-                            }
-                        </span>
-                        <span>${demand.responsible || "-"}</span>
-                    </div>
-                `;
-
-              // Adicionar evento de clique para abrir modal de edição
-              card.addEventListener("click", function () {
-                editDemand(demand.id);
-              });
-
-              // Adicionar evento de clique direito para abrir menu de contexto
-              card.addEventListener("contextmenu", function (e) {
-                e.preventDefault();
-                openContextMenu(e, demand.id);
-              });
-
-              column.appendChild(card);
-            });
-          }
-        });
-      }
-
-      // Inicializar calendário
-      function initCalendar() {
-        const calendarEl = document.getElementById("calendar");
-        if (!calendarEl) return;
-
-        const calendar = new FullCalendar.Calendar(calendarEl, {
-          initialView: "dayGridMonth",
-          events: demands.map((demand) => ({
-            title: demand.title,
-            start: demand.dueDate,
-            extendedProps: {
-              description: demand.description,
-              status: demand.status,
-            },
-          })),
-        });
-
-        calendar.render();
-      }
-
-      // Inicializar arrastar e soltar
-      function initSortable() {
-        const kanbanColumns = document.querySelectorAll(".kanban-items");
-
-        kanbanColumns.forEach((column) => {
-          new Sortable(column, {
-            group: "kanban",
-            animation: 150,
-            onEnd: function (evt) {
-              const demandId = evt.item.getAttribute("data-id");
-              const newStatus = evt.to.getAttribute("data-status");
-
-              // Atualizar status da demanda
-              const demand = demands.find(
-                (d) => d.id === parseInt(demandId)
-              );
-              if (demand) {
-                demand.status = newStatus;
-                renderDemands();
-              }
-            },
-          });
-        });
-      }
-
-      // Alternar tema claro/escuro
-      function toggleTheme() {
-        document.body.classList.toggle("dark-theme");
-
-        if (document.body.classList.contains("dark-theme")) {
-          themeToggle.innerHTML = '<i class="fas fa-sun"></i> Tema Claro';
-        } else {
-          themeToggle.innerHTML = '<i class="fas fa-moon"></i> Tema Escuro';
-        }
-      }
-
-      // Abrir menu de contexto
-      function openContextMenu(e, demandId) {
-        contextMenuDemandId = demandId;
-
-        // Posicionar menu
-        contextMenu.style.display = "block";
-        contextMenu.style.left = `${e.pageX}px`;
-        contextMenu.style.top = `${e.pageY}px`;
-
-        // Ajustar posição se estiver fora da tela
-        const rect = contextMenu.getBoundingClientRect();
-        const windowWidth = window.innerWidth;
-        const windowHeight = window.innerHeight;
-
-        if (rect.right > windowWidth) {
-          contextMenu.style.left = `${e.pageX - rect.width}px`;
-        }
-
-        if (rect.bottom > windowHeight) {
-          contextMenu.style.top = `${e.pageY - rect.height}px`;
-        }
-      }
-
-      // Filtrar demandas
-      function filterDemands() {
-        renderDemands();
-      }
-
-      // Abrir modal para nova demanda
-      function openNewDemandModal() {
-        demandForm.reset();
-        document.getElementById("demandId").value = "";
-        document.getElementById("tabId").value = currentTab;
-        document.getElementById("demandModalTitle").textContent =
-          "Nova Demanda";
-        demandModal.style.display = "flex";
-      }
-
-      // Abrir modal para edição de demanda
-      function editDemand(id) {
-        const demand = demands.find((d) => d.id === id);
-        if (!demand) return;
-
-        document.getElementById("demandModalTitle").textContent =
-          "Editar Demanda";
-        document.getElementById("title").value = demand.title;
-        document.getElementById("description").value = demand.description || "";
-        document.getElementById("status").value = demand.status;
-        document.getElementById("priority").value = demand.priority;
-        document.getElementById("responsible").value = demand.responsible || "";
-        document.getElementById("dueDate").value = demand.dueDate || "";
-        document.getElementById("demandId").value = demand.id;
-        document.getElementById("tabId").value = demand.tabId;
-
-        demandModal.style.display = "flex";
-      }
-
-      // Abrir modal para excluir demanda
-      function openDeleteModal(id) {
-        document.getElementById("deleteId").value = id;
-        deleteModal.style.display = "flex";
-      }
-
-      // Abrir modal para nova aba
-      function openNewTabModal() {
-        tabForm.reset();
-        tabModal.style.display = "flex";
-      }
-
-      // Salvar demanda
-      function saveDemand() {
-        const form = document.getElementById("demandForm");
-
-        if (!form.checkValidity()) {
-          form.reportValidity();
-          return;
-        }
-
-        const id = document.getElementById("demandId").value;
-        const title = document.getElementById("title").value;
-        const description = document.getElementById("description").value;
-        const status = document.getElementById("status").value;
-        const priority = document.getElementById("priority").value;
-        const responsible = document.getElementById("responsible").value;
-        const dueDate = document.getElementById("dueDate").value;
-        const tabId = document.getElementById("tabId").value;
-
-        if (id) {
-          // Atualizar demanda existente
-          const index = demands.findIndex((d) => d.id === parseInt(id));
-          if (index !== -1) {
-            demands[index] = {
-              ...demands[index],
-              title,
-              description,
-              status,
-              priority,
-              responsible,
-              dueDate,
-              tabId,
-            };
-          }
-        } else {
-          // Adicionar nova demanda
-          const newDemand = {
-            id: nextId++,
-            title,
-            description,
-            status,
-            priority,
-            responsible,
-            dueDate,
-            tabId,
-          };
-
-          demands.push(newDemand);
-        }
-
-        closeAllModals();
-        renderDemands();
-      }
-
-      // Salvar nova aba
-      function saveTab() {
-        const form = document.getElementById("tabForm");
-
-        if (!form.checkValidity()) {
-          form.reportValidity();
-          return;
-        }
-
-        const tabName = document.getElementById("newTabName").value;
-        const tabId = "tab" + (tabs.length + 1);
-
-        // Adicionar nova aba
-        tabs.push(tabId);
-
-        // Criar elemento da aba
-        const tabElement = document.createElement("div");
-        tabElement.className = "tab";
-        tabElement.setAttribute("data-tab", tabId);
-        tabElement.textContent = tabName;
-
-        tabsContainer.appendChild(tabElement);
-
-        // Mudar para a nova aba
-        changeTab(tabId);
-
-        closeAllModals();
-      }
-
-      // Confirmar exclusão
-      function confirmDelete() {
-        const id = parseInt(document.getElementById("deleteId").value);
-
-        // Remover demanda
-        demands = demands.filter((d) => d.id !== id);
-
-        closeAllModals();
-        renderDemands();
-      }
-
-      // Fechar todos os modais
-      function closeAllModals() {
-        const modals = document.querySelectorAll(".modal-overlay");
-        modals.forEach((modal) => {
-          modal.style.display = "none";
-        });
-      }
-
-      // Formatar data
-      function formatDate(dateString) {
-        if (!dateString) return "";
-
-        const date = new Date(dateString);
-        return date.toLocaleDateString("pt-BR");
-      }
-    </script>
-  </body>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NotionPlus - Dashboard</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.5.0/echarts.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css" rel="stylesheet">
+<style>
+:where([class^="ri-"])::before { content: "\f3c2"; }
+.scrollbar-hide::-webkit-scrollbar {display: none;}
+.scrollbar-hide {-ms-overflow-style: none;scrollbar-width: none;}
+</style>
+<script>
+tailwind.config = {
+theme: {
+extend: {
+colors: {
+primary: '#0066FF',
+secondary: '#6B7280'
+},
+borderRadius: {
+'none': '0px',
+'sm': '4px',
+DEFAULT: '8px',
+'md': '12px',
+'lg': '16px',
+'xl': '20px',
+'2xl': '24px',
+'3xl': '32px',
+'full': '9999px',
+'button': '8px'
+}
+}
+}
+}
+</script>
+</head>
+<body class="bg-gray-50 h-screen flex overflow-hidden font-['Inter']">
+<aside class="w-64 bg-white border-r border-gray-200 flex flex-col h-full">
+<div class="p-4 border-b border-gray-200">
+<h1 class="text-2xl font-['Pacifico'] text-primary">logo</h1>
+</div>
+<nav class="flex-1 overflow-y-auto scrollbar-hide p-4 space-y-6">
+<div>
+<h2 class="text-xs font-semibold text-gray-500 mb-2">PRINCIPAL</h2>
+<ul class="space-y-1">
+<li>
+<a href="index.html" data-readdy="true" class="flex items-center px-3 py-2 text-primary bg-blue-50 rounded-button">
+<i class="ri-home-line w-5 h-5 flex items-center justify-center"></i>
+<span class="ml-2">Página Inicial</span>
+</a>
+</li>
+<li>
+<a href="Calendario.html" data-readdy="true" class="flex items-center px-3 py-2 text-gray-700 rounded-button hover:bg-gray-100">
+<i class="ri-calendar-line w-5 h-5 flex items-center justify-center"></i>
+<span class="ml-2">Calendário</span>
+</a>
+</li>
+<li>
+<a href="Tarefas.html" data-readdy="true" class="flex items-center px-3 py-2 text-gray-700 rounded-button hover:bg-gray-100">
+<i class="ri-task-line w-5 h-5 flex items-center justify-center"></i>
+<span class="ml-2">Tarefas</span>
+</a>
+</li>
+</ul>
+</div>
+<div>
+<h2 class="text-xs font-semibold text-gray-500 mb-2">FAVORITOS</h2>
+<ul class="space-y-1">
+<li>
+<a href="#" class="flex items-center px-3 py-2 text-gray-700 rounded-button hover:bg-gray-100">
+<i class="ri-star-line w-5 h-5 flex items-center justify-center"></i>
+<span class="ml-2">Projetos Pessoais</span>
+</a>
+</li>
+<li>
+<a href="#" class="flex items-center px-3 py-2 text-gray-700 rounded-button hover:bg-gray-100">
+<i class="ri-star-line w-5 h-5 flex items-center justify-center"></i>
+<span class="ml-2">Notas de Reunião</span>
+</a>
+</li>
+</ul>
+</div>
+<div>
+<div class="flex items-center justify-between">
+<h2 class="text-xs font-semibold text-gray-500">WORKSPACES</h2>
+<button class="p-1 text-gray-500 hover:text-primary rounded-button hover:bg-gray-100">
+<i class="ri-add-line w-4 h-4 flex items-center justify-center"></i>
+</button>
+</div>
+<ul class="space-y-1">
+<li class="group relative">
+<div class="flex items-center px-3 py-2 text-gray-700 rounded-button hover:bg-gray-100">
+<i class="ri-folder-line w-5 h-5 flex items-center justify-center"></i>
+<span class="ml-2">Marketing Digital</span>
+<button class="hidden group-hover:flex absolute right-2 p-1 text-gray-500 hover:text-primary rounded-button hover:bg-gray-100">
+<i class="ri-add-line w-4 h-4 flex items-center justify-center"></i>
+</button>
+</div>
+</li>
+<li class="group relative">
+<div class="flex items-center px-3 py-2 text-gray-700 rounded-button hover:bg-gray-100">
+<i class="ri-folder-line w-5 h-5 flex items-center justify-center"></i>
+<span class="ml-2">Desenvolvimento</span>
+<button class="hidden group-hover:flex absolute right-2 p-1 text-gray-500 hover:text-primary rounded-button hover:bg-gray-100">
+<i class="ri-add-line w-4 h-4 flex items-center justify-center"></i>
+</button>
+</div>
+</li>
+</ul>
+</div>
+</nav>
+<div class="p-4 border-t border-gray-200">
+<button class="flex items-center w-full px-3 py-2 text-gray-700 rounded-button hover:bg-gray-100">
+<i class="ri-settings-line w-5 h-5 flex items-center justify-center"></i>
+<span class="ml-2">Configurações</span>
+</button>
+</div>
+</aside>
+<main class="flex-1 flex flex-col overflow-hidden">
+<header class="h-16 bg-white border-b border-gray-200 flex items-center px-6">
+<div class="flex-1 flex items-center">
+<div class="relative w-96">
+<input type="text" placeholder="Pesquisar..." class="w-full pl-10 pr-4 py-2 bg-gray-100 rounded-button focus:outline-none focus:ring-2 focus:ring-primary/20">
+<i class="ri-search-line absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+</div>
+</div>
+<div class="flex items-center space-x-4">
+<button class="relative p-2 text-gray-700 rounded-button hover:bg-gray-100">
+<i class="ri-notification-line w-5 h-5 flex items-center justify-center"></i>
+<span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+</button>
+<button class="flex items-center space-x-2 px-3 py-2 text-gray-700 rounded-button hover:bg-gray-100">
+<img src="https://public.readdy.ai/ai/img_res/807e2e8fdea79ed02c554b7770724570.jpg" class="w-8 h-8 rounded-full object-cover" alt="Avatar">
+<span>Ricardo Silva</span>
+<i class="ri-arrow-down-s-line w-5 h-5 flex items-center justify-center"></i>
+</button>
+</div>
+</header>
+<div class="flex-1 overflow-auto p-6 space-y-6">
+<div class="flex items-center justify-between">
+<h1 class="text-2xl font-semibold">Dashboard</h1>
+<div class="flex items-center space-x-4">
+<button class="px-4 py-2 text-gray-700 rounded-button hover:bg-gray-100 flex items-center">
+<i class="ri-filter-3-line w-5 h-5 flex items-center justify-center mr-2"></i>
+<span>Filtrar</span>
+</button>
+<button class="flex items-center px-4 py-2 bg-primary text-white rounded-button hover:bg-primary/90">
+<i class="ri-add-line w-5 h-5 flex items-center justify-center"></i>
+<span class="ml-2">Nova Página</span>
+</button>
+</div>
+</div>
+<div class="grid grid-cols-4 gap-6">
+<div class="bg-white p-6 rounded-lg border border-gray-200">
+<div class="flex items-center justify-between mb-4">
+<h3 class="font-medium text-gray-500">Tarefas Pendentes</h3>
+<i class="ri-task-line w-6 h-6 flex items-center justify-center text-primary"></i>
+</div>
+<p class="text-3xl font-semibold">12</p>
+<p class="text-sm text-gray-500 mt-1">3 para hoje</p>
+</div>
+<div class="bg-white p-6 rounded-lg border border-gray-200">
+<div class="flex items-center justify-between mb-4">
+<h3 class="font-medium text-gray-500">Reuniões Hoje</h3>
+<i class="ri-team-line w-6 h-6 flex items-center justify-center text-primary"></i>
+</div>
+<p class="text-3xl font-semibold">4</p>
+<p class="text-sm text-gray-500 mt-1">Próxima em 2h</p>
+</div>
+<div class="bg-white p-6 rounded-lg border border-gray-200">
+<div class="flex items-center justify-between mb-4">
+<h3 class="font-medium text-gray-500">Documentos Recentes</h3>
+<i class="ri-file-text-line w-6 h-6 flex items-center justify-center text-primary"></i>
+</div>
+<p class="text-3xl font-semibold">28</p>
+<p class="text-sm text-gray-500 mt-1">8 atualizados hoje</p>
+</div>
+<div class="bg-white p-6 rounded-lg border border-gray-200">
+<div class="flex items-center justify-between mb-4">
+<h3 class="font-medium text-gray-500">Atividades</h3>
+<i class="ri-pulse-line w-6 h-6 flex items-center justify-center text-primary"></i>
+</div>
+<p class="text-3xl font-semibold">156</p>
+<p class="text-sm text-gray-500 mt-1">+23% esta semana</p>
+</div>
+</div>
+<div class="grid grid-cols-3 gap-6">
+<div class="bg-white p-6 rounded-lg border border-gray-200 col-span-2">
+<div class="flex items-center justify-between mb-6">
+<h2 class="text-lg font-semibold">Atividade do Projeto</h2>
+<select class="bg-transparent text-gray-500 text-sm focus:outline-none cursor-pointer">
+<option>Últimos 7 dias</option>
+<option>Últimos 30 dias</option>
+<option>Este ano</option>
+</select>
+</div>
+<div id="activityChart" class="w-full h-64"></div>
+</div>
+<div class="bg-white p-6 rounded-lg border border-gray-200">
+<div class="flex items-center justify-between mb-6">
+<h2 class="text-lg font-semibold">Distribuição de Tarefas</h2>
+<button class="text-gray-500 hover:text-gray-700">
+<i class="ri-more-2-fill w-5 h-5 flex items-center justify-center"></i>
+</button>
+</div>
+<div id="tasksChart" class="w-full h-64"></div>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-6">
+<div class="bg-white p-6 rounded-lg border border-gray-200">
+<div class="flex items-center justify-between mb-6">
+<h2 class="text-lg font-semibold">Próximas Reuniões</h2>
+<button class="text-sm text-primary hover:text-primary/80">Ver todas</button>
+</div>
+<div class="space-y-4">
+<div class="flex items-center p-3 bg-gray-50 rounded-lg">
+<div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center text-primary">
+<i class="ri-team-line w-6 h-6 flex items-center justify-center"></i>
+</div>
+<div class="ml-4">
+<h3 class="font-medium">Revisão de Sprint</h3>
+<p class="text-sm text-gray-500">Hoje, 14:00 - 15:00</p>
+</div>
+<button class="ml-auto text-gray-500 hover:text-gray-700">
+<i class="ri-more-2-fill w-5 h-5 flex items-center justify-center"></i>
+</button>
+</div>
+<div class="flex items-center p-3 bg-gray-50 rounded-lg">
+<div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center text-primary">
+<i class="ri-team-line w-6 h-6 flex items-center justify-center"></i>
+</div>
+<div class="ml-4">
+<h3 class="font-medium">Planejamento Q2</h3>
+<p class="text-sm text-gray-500">Amanhã, 10:00 - 11:30</p>
+</div>
+<button class="ml-auto text-gray-500 hover:text-gray-700">
+<i class="ri-more-2-fill w-5 h-5 flex items-center justify-center"></i>
+</button>
+</div>
+</div>
+</div>
+<div class="bg-white p-6 rounded-lg border border-gray-200">
+<div class="flex items-center justify-between mb-6">
+<h2 class="text-lg font-semibold">Documentos Recentes</h2>
+<button class="text-sm text-primary hover:text-primary/80">Ver todos</button>
+</div>
+<div class="space-y-4">
+<div class="flex items-center">
+<div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center text-primary">
+<i class="ri-file-text-line w-5 h-5 flex items-center justify-center"></i>
+</div>
+<div class="ml-3 flex-1">
+<h3 class="font-medium">Relatório de Vendas.pdf</h3>
+<p class="text-sm text-gray-500">Atualizado há 2 horas</p>
+</div>
+<button class="text-gray-500 hover:text-gray-700">
+<i class="ri-download-line w-5 h-5 flex items-center justify-center"></i>
+</button>
+</div>
+<div class="flex items-center">
+<div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center text-green-600">
+<i class="ri-file-excel-line w-5 h-5 flex items-center justify-center"></i>
+</div>
+<div class="ml-3 flex-1">
+<h3 class="font-medium">Métricas Q1.xlsx</h3>
+<p class="text-sm text-gray-500">Atualizado ontem</p>
+</div>
+<button class="text-gray-500 hover:text-gray-700">
+<i class="ri-download-line w-5 h-5 flex items-center justify-center"></i>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<aside class="w-80 bg-white border-l border-gray-200 overflow-y-auto">
+<div class="p-6 border-b border-gray-200">
+<h2 class="text-lg font-semibold">Atividade Recente</h2>
+</div>
+<div class="p-6 space-y-6">
+<div class="space-y-4">
+<div class="flex items-start">
+<img src="https://public.readdy.ai/ai/img_res/055c85b231e2dde8cad3d1de0ffb8f8d.jpg" class="w-10 h-10 rounded-full object-cover" alt="Avatar">
+<div class="ml-3">
+<p class="text-sm">
+<span class="font-medium">Ana Beatriz</span>
+<span class="text-gray-500">comentou no documento</span>
+<span class="font-medium">Planejamento Q2</span>
+</p>
+<p class="text-sm text-gray-600 mt-1">Excelentes insights! Vamos discutir na próxima reunião.</p>
+<span class="text-xs text-gray-500">Há 5 minutos</span>
+</div>
+</div>
+<div class="flex items-start">
+<img src="https://public.readdy.ai/ai/img_res/af29de089a364a369005a4b2cdf35005.jpg" class="w-10 h-10 rounded-full object-cover" alt="Avatar">
+<div class="ml-3">
+<p class="text-sm">
+<span class="font-medium">Carlos Mendes</span>
+<span class="text-gray-500">criou uma nova tarefa em</span>
+<span class="font-medium">Marketing Digital</span>
+</p>
+<p class="text-sm text-gray-600 mt-1">Preparar apresentação para cliente</p>
+<span class="text-xs text-gray-500">Há 30 minutos</span>
+</div>
+</div>
+<div class="flex items-start">
+<img src="https://public.readdy.ai/ai/img_res/02d776f33aab30550c327da9e45332c4.jpg" class="w-10 h-10 rounded-full object-cover" alt="Avatar">
+<div class="ml-3">
+<p class="text-sm">
+<span class="font-medium">Mariana Costa</span>
+<span class="text-gray-500">atualizou</span>
+<span class="font-medium">Relatório de Vendas</span>
+</p>
+<p class="text-sm text-gray-600 mt-1">Adicionados dados do último trimestre</p>
+<span class="text-xs text-gray-500">Há 2 horas</span>
+</div>
+</div>
+</div>
+</div>
+</aside>
+<script>
+const activityChart = echarts.init(document.getElementById('activityChart'));
+const tasksChart = echarts.init(document.getElementById('tasksChart'));
+activityChart.setOption({
+animation: false,
+tooltip: {
+trigger: 'axis',
+backgroundColor: 'rgba(255, 255, 255, 0.9)',
+borderColor: '#e5e7eb',
+textStyle: {color: '#1f2937'}
+},
+grid: {top: 0, right: 0, bottom: 0, left: 0},
+xAxis: {
+type: 'category',
+data: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'],
+axisLine: {show: false},
+axisTick: {show: false},
+axisLabel: {color: '#6b7280'}
+},
+yAxis: {
+type: 'value',
+show: false
+},
+series: [{
+data: [120, 200, 150, 80, 70, 110, 130],
+type: 'line',
+smooth: true,
+symbol: 'none',
+lineStyle: {color: 'rgba(87, 181, 231, 1)'},
+areaStyle: {
+color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
+offset: 0,
+color: 'rgba(87, 181, 231, 0.1)'
+}, {
+offset: 1,
+color: 'rgba(87, 181, 231, 0.02)'
+}])
+}
+}]
+});
+tasksChart.setOption({
+animation: false,
+tooltip: {
+trigger: 'item',
+backgroundColor: 'rgba(255, 255, 255, 0.9)',
+borderColor: '#e5e7eb',
+textStyle: {color: '#1f2937'}
+},
+series: [{
+type: 'pie',
+radius: ['60%', '80%'],
+avoidLabelOverlap: false,
+label: {show: false},
+emphasis: {label: {show: false}},
+data: [
+{value: 35, name: 'Em Progresso', itemStyle: {color: 'rgba(87, 181, 231, 1)'}},
+{value: 25, name: 'Pendente', itemStyle: {color: 'rgba(141, 211, 199, 1)'}},
+{value: 20, name: 'Concluído', itemStyle: {color: 'rgba(251, 191, 114, 1)'}},
+{value: 20, name: 'Atrasado', itemStyle: {color: 'rgba(252, 141, 98, 1)'}}
+]
+}]
+});
+window.addEventListener('resize', () => {
+activityChart.resize();
+tasksChart.resize();
+});
+</script>
+</body>
 </html>
